@@ -21,7 +21,7 @@ class MyTourController extends Controller
     {
         $title = 'Tours đã đặt';
         $userId = $this->getUserId();
-        
+
         $myTours = $this->user->getMyTours($userId);
         $userId = $this->getUserId();
         if ($userId) {
@@ -35,10 +35,12 @@ class MyTourController extends Controller
                 if ($response->successful()) {
                     $tourIds = $response->json('recommended_tours');
                     $tourIds = array_slice($tourIds, 0, 2);
-                } else {
+                }
+                else {
                     $tourIds = [];
                 }
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 // Xử lý lỗi khi gọi API
                 $tourIds = [];
                 \Log::error('Lỗi khi gọi API liên quan: ' . $e->getMessage());
@@ -46,11 +48,12 @@ class MyTourController extends Controller
 
 
             $toursPopular = $this->tours->toursRecommendation($tourIds);
-            // dd($toursPopular);
-        }else {
+        // dd($toursPopular);
+        }
+        else {
             $toursPopular = $this->tours->toursPopular(6);
         }
 
-        return view('clients.my-tours', compact('title', 'myTours','toursPopular'));
+        return view('clients.my-tours', compact('title', 'myTours', 'toursPopular'));
     }
 }

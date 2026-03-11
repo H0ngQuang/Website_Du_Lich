@@ -38,13 +38,13 @@ class User extends Model
 
     public function getMyTours($id)
     {
-        $myTours =  DB::table('tbl_booking')
-        ->join('tbl_tours', 'tbl_booking.tourId', '=', 'tbl_tours.tourId')
-        ->join('tbl_checkout', 'tbl_booking.bookingId', '=', 'tbl_checkout.bookingId')
-        ->where('tbl_booking.userId', $id)
-        ->orderByDesc('tbl_booking.bookingDate')
-        ->take(3)
-        ->get();
+        $myTours = DB::table('tbl_booking')
+            ->join('tbl_tours', 'tbl_booking.tourId', '=', 'tbl_tours.tourId')
+            ->join('tbl_checkout', 'tbl_booking.bookingId', '=', 'tbl_checkout.bookingId')
+            ->where('tbl_booking.userId', $id)
+            ->orderByDesc('tbl_booking.bookingDate')
+            ->take(3)
+            ->get();
 
         foreach ($myTours as $tour) {
             // Lấy rating từ tbl_reviews cho mỗi tour

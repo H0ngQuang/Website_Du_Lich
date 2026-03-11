@@ -43,8 +43,8 @@ class SearchController extends Controller
         $endDate = $request->input('end_date');
 
         // Chuyển đổi định dạng ngày tháng
-        $formattedStartDate = $startDate ? Carbon::createFromFormat('d/m/Y', $startDate)->format('Y-m-d') : null;
-        $formattedEndDate = $endDate ? Carbon::createFromFormat('d/m/Y', $endDate)->format('Y-m-d') : null;
+        $formattedStartDate = $startDate ?Carbon::createFromFormat('d/m/Y', $startDate)->format('Y-m-d') : null;
+        $formattedEndDate = $endDate ?Carbon::createFromFormat('d/m/Y', $endDate)->format('Y-m-d') : null;
 
         // Chuyển đổi giá trị sang tên chi tiết nếu có trong mảng
         $destinationName = $destinationMap[$destination];
@@ -77,10 +77,12 @@ class SearchController extends Controller
 
             if ($response->successful()) {
                 $resultTours = $response->json('related_tours');
-            } else {
+            }
+            else {
                 $resultTours = [];
             }
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             // Xử lý lỗi khi gọi API
             $resultTours = [];
             \Log::error('Lỗi khi gọi API liên quan: ' . $e->getMessage());
@@ -90,7 +92,8 @@ class SearchController extends Controller
         if ($resultTours) {
             $tours = $this->tours->toursSearch($resultTours);
 
-        } else {
+        }
+        else {
             $dataSearch = [
                 'keyword' => $keyword
             ];

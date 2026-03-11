@@ -30,7 +30,8 @@ class LoginGoogleController extends Controller
             if ($finduser) {
                 session()->put('username', $finduser->username);
                 return redirect()->intended('/');
-            } else {
+            }
+            else {
                 $data_google = [
                     'google_id' => $user->id,
                     'fullName' => $user->name,
@@ -45,12 +46,14 @@ class LoginGoogleController extends Controller
                     // Lưu thông tin người dùng mới vào session
                     session()->put('username', $newUser->username);
                     return redirect()->intended('/');
-                } else {
+                }
+                else {
                     // Nếu có lỗi khi đăng ký người dùng mới, xử lý lỗi
                     return redirect()->back()->with('error', 'Có lỗi xảy ra trong quá trình đăng ký người dùng mới');
                 }
             }
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             dd($e->getMessage());
         }
     }

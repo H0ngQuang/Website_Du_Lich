@@ -220,19 +220,224 @@
         color: #63ab45;
     }
 
-    /* Payment Options */
+    /* Payment Options - Premium Card Design */
+    .payment-methods-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
     .payment-option {
-        margin-bottom: 15px;
-        padding: 15px;
-        border: 1px solid #e2e4e5;
-        border-radius: 5px;
+        margin-bottom: 0;
+        padding: 16px 20px;
+        border: 2px solid #e8ecef;
+        border-radius: 12px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 14px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #fff;
+        position: relative;
+    }
+
+    .payment-option:hover {
+        border-color: #63ab45;
+        background: linear-gradient(135deg, #f0faf0 0%, #fff 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 171, 69, 0.12);
+    }
+
+    .payment-option input[type="radio"] {
+        display: none;
+    }
+
+    .payment-option input[type="radio"]:checked ~ .payment-check {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .payment-option:has(input[type="radio"]:checked) {
+        border-color: #63ab45;
+        background: linear-gradient(135deg, #f0faf0 0%, #e8f5e3 100%);
+        box-shadow: 0 4px 16px rgba(99, 171, 69, 0.18);
+    }
+
+    .payment-option-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: #f6f8fa;
+        border: 1px solid #eee;
+    }
+
+    .payment-option-icon img {
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
     }
 
     .payment-option img {
-        width: 40px;
+        width: 36px;
+    }
+
+    .payment-option-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .payment-option-title {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #1a1a2e;
+        line-height: 1.3;
+    }
+
+    .payment-option-desc {
+        font-size: 0.82rem;
+        color: #7a7f87;
+        margin-top: 2px;
+        line-height: 1.3;
+    }
+
+    .payment-check {
+        opacity: 0;
+        transform: scale(0.6);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #63ab45;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    /* Bank Transfer Panel */
+    .bank-transfer-panel {
+        margin-top: 16px;
+        border: 2px solid #e3f0fd;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        animation: slideDown 0.35s ease;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; max-height: 0; transform: translateY(-8px); }
+        to   { opacity: 1; max-height: 400px; transform: translateY(0); }
+    }
+
+    .bank-transfer-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 20px;
+        background: linear-gradient(135deg, #1e88e5, #1565c0);
+        color: #fff;
+    }
+
+    .bank-transfer-header i {
+        font-size: 20px;
+    }
+
+    .bank-transfer-header h4 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .bank-transfer-details {
+        padding: 16px 20px;
+    }
+
+    .bank-detail-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 0;
+        border-bottom: 1px dashed #eee;
+    }
+
+    .bank-detail-row:last-of-type {
+        border-bottom: none;
+    }
+
+    .bank-label {
+        font-weight: 600;
+        color: #555;
+        min-width: 130px;
+        font-size: 0.92rem;
+    }
+
+    .bank-value {
+        color: #1a1a2e;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .bank-account-number {
+        font-family: 'Courier New', monospace;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #1565c0;
+        letter-spacing: 1px;
+    }
+
+    .btn-copy-bank {
+        background: #e3f0fd;
+        border: none;
+        border-radius: 6px;
+        padding: 5px 10px;
+        color: #1565c0;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 14px;
+    }
+
+    .btn-copy-bank:hover {
+        background: #1565c0;
+        color: #fff;
+    }
+
+    .bank-transfer-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 12px 14px;
+        margin-top: 10px;
+        background: #fff8e1;
+        border-radius: 8px;
+        border-left: 3px solid #ffa726;
+    }
+
+    .bank-transfer-note i {
+        color: #ffa726;
+        font-size: 16px;
+        margin-top: 2px;
+    }
+
+    .bank-transfer-note span {
+        font-size: 0.85rem;
+        color: #6d4c00;
+        line-height: 1.4;
+    }
+
+    .bank-tour-id, .bank-phone-placeholder {
+        font-weight: 700;
+        color: #1565c0;
+    }
+
+    /* Payment Action Buttons */
+    .btn-payment-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
     /* Privacy Agreement */

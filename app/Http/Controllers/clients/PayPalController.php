@@ -56,7 +56,8 @@ class PayPalController extends Controller
             return redirect()
                 ->route('createTransaction')
                 ->with('error', 'Something went wrong.');
-        } else {
+        }
+        else {
             return redirect()
                 ->route('createTransaction')
                 ->with('error', $response['message'] ?? 'Something went wrong.');
@@ -77,7 +78,8 @@ class PayPalController extends Controller
             return redirect()
                 ->route('createTransaction')
                 ->with('success', 'Transaction complete.');
-        } else {
+        }
+        else {
             return redirect()
                 ->route('createTransaction')
                 ->with('error', $response['message'] ?? 'Something went wrong.');

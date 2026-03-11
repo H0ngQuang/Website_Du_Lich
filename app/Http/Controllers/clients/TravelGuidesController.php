@@ -25,7 +25,7 @@ class TravelGuidesController extends Controller
      */
     public function create()
     {
-        //
+    //
     }
 
     /**
@@ -36,7 +36,7 @@ class TravelGuidesController extends Controller
      */
     public function store(Request $request)
     {
-        //
+    //
     }
 
     /**
@@ -47,7 +47,7 @@ class TravelGuidesController extends Controller
      */
     public function show($id)
     {
-        //
+    //
     }
 
     /**
@@ -58,7 +58,7 @@ class TravelGuidesController extends Controller
      */
     public function edit($id)
     {
-        //
+    //
     }
 
     /**
@@ -70,7 +70,7 @@ class TravelGuidesController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+    //
     }
 
     /**
@@ -81,6 +81,6 @@ class TravelGuidesController extends Controller
      */
     public function destroy($id)
     {
-        //
+    //
     }
 }

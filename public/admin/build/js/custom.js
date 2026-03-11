@@ -2213,7 +2213,7 @@ function init_daterangepicker_reservation() {
 
 /* SMART WIZARD */
 /**
- * DevDien modified for add tours
+ * DevQuang modified for add tours
  *
  */
 function init_SmartWizard() {

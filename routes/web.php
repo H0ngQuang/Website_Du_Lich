@@ -24,6 +24,8 @@ use App\Http\Controllers\clients\MyTourController;
 use App\Http\Controllers\clients\PayPalController;
 use App\Http\Controllers\clients\SearchController;
 use App\Http\Controllers\clients\TourBookedController;
+use App\Http\Controllers\clients\ChatbotController;
+use App\Http\Controllers\clients\VNPayController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,6 +80,10 @@ Route::get('cancel-transaction', [PayPalController::class, 'cancelTransaction'])
 //Payment with Momo
 Route::post('/create-momo-payment', [BookingController::class, 'createMomoPayment'])->name('createMomoPayment');
 
+//Payment with VNPay
+Route::post('/create-vnpay-payment', [VNPayController::class, 'createPayment'])->name('createVnpayPayment');
+Route::get('/vnpay-return', [VNPayController::class, 'handleReturn'])->name('vnpayReturn');
+
 
 //Tour booked
 Route::get('/tour-booked', [TourBookedController::class, 'index'])->name('tour-booked')->middleware('checkLoginClient');
@@ -99,6 +105,9 @@ Route::post('/create-contact', [ContactController::class, 'createContact'])->nam
 //Search 
 Route::get('/search', [SearchController::class, 'index'])->name(name: 'search');
 Route::get('/search-voice-text', [SearchController::class, 'searchTours'])->name('search-voice-text');
+
+//Chatbot AI
+Route::post('/chatbot/send', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
 
 
 //ADMIN

@@ -49,7 +49,8 @@ class UserManagementController extends Controller
                 'success' => true,
                 'message' => 'Người dùng đã được kích hoạt thành công!'
             ]);
-        } else {
+        }
+        else {
             return response()->json([
                 'success' => false,
                 'message' => 'Có lỗi xảy ra khi kích hoạt người dùng!'
@@ -75,7 +76,8 @@ class UserManagementController extends Controller
                 'status' => $statusText,
                 'message' => "Trạng thái người dùng đã được cập nhật thành công!"
             ]);
-        } else {
+        }
+        else {
             return response()->json([
                 'success' => false,
                 'message' => "Có lỗi xảy ra khi cập nhật trạng thái người dùng!"

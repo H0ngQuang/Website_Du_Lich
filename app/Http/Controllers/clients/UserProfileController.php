@@ -54,11 +54,13 @@ class UserProfileController extends Controller
             $update = $this->user->updateUser($userId, ['password' => md5($req->newPass)]);
             if (!$update) {
                 return response()->json(['error' => true, 'message' => 'Mật khẩu mới trùng với mật khẩu cũ!']);
-            } else {
+            }
+            else {
                 return response()->json(['success' => true, 'message' => 'Đổi mật khẩu thành công!']);
 
             }
-        } else {
+        }
+        else {
             return response()->json(['error' => true, 'message' => 'Mật khẩu cũ không chính xác.'], 500);
         }
     }

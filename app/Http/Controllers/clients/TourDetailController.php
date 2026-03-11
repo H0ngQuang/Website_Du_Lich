@@ -32,11 +32,12 @@ class TourDetailController extends Controller
         $checkReviewExist = $this->tours->checkReviewExist($id, $userId);
         if (!$checkReviewExist) {
             $checkDisplay = '';
-        } else {
+        }
+        else {
             $checkDisplay = 'hide';
         }
 
-        
+
         // Gọi API Python để lấy danh sách tour liên quan
         try {
             $apiUrl = 'http://127.0.0.1:5555/api/tour-recommendations';
@@ -46,10 +47,12 @@ class TourDetailController extends Controller
 
             if ($response->successful()) {
                 $relatedTours = $response->json('related_tours');
-            } else {
+            }
+            else {
                 $relatedTours = [];
             }
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             // Xử lý lỗi khi gọi API
             $relatedTours = [];
             \Log::error('Lỗi khi gọi API liên quan: ' . $e->getMessage());
@@ -61,7 +64,7 @@ class TourDetailController extends Controller
         // dd($tourRecommendations);    
         // dd($avgStar);
 
-        return view('clients.tour-detail', compact('title', 'tourDetail', 'getReviews', 'avgStar', 'countReview', 'checkDisplay','tourRecommendations'));
+        return view('clients.tour-detail', compact('title', 'tourDetail', 'getReviews', 'avgStar', 'countReview', 'checkDisplay', 'tourRecommendations'));
     }
 
     public function reviews(Request $req)

@@ -35,10 +35,10 @@ class DashboardModel extends Model
         // Lấy số lượng tours cho mỗi miền (b, t, n)
         return DB::table('tbl_tours')
             ->select(DB::raw('domain, COUNT(*) as count'))
-            ->whereIn('domain', ['b', 't', 'n'])  // Chỉ lấy các miền có domain b, t, n
-            ->groupBy('domain')  // Nhóm theo domain
+            ->whereIn('domain', ['b', 't', 'n']) // Chỉ lấy các miền có domain b, t, n
+            ->groupBy('domain') // Nhóm theo domain
             ->get()
-            ->pluck('count', 'domain');  // Trả về mảng với key là domain và value là count
+            ->pluck('count', 'domain'); // Trả về mảng với key là domain và value là count
     }
 
     public function getValuePayment()
@@ -83,11 +83,11 @@ class DashboardModel extends Model
             ->get();
 
         // Chuẩn bị mảng doanh thu với 12 tháng
-        $revenueData = array_fill(0, 12, 0);  // Mảng chứa doanh thu cho 12 tháng
+        $revenueData = array_fill(0, 12, 0); // Mảng chứa doanh thu cho 12 tháng
 
         // Gán doanh thu cho từng tháng
         foreach ($monthlyRevenue as $data) {
-                $revenueData[$data->month - 1] = $data->revenue;  // Gán doanh thu cho tháng tương ứng
+            $revenueData[$data->month - 1] = $data->revenue; // Gán doanh thu cho tháng tương ứng
         }
 
         return $revenueData;

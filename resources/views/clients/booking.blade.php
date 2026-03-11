@@ -76,26 +76,104 @@
             <!-- Payment Method -->
             <h2 class="booking-header">Phương Thức Thanh Toán</h2>
 
-            <label class="payment-option">
-                <input type="radio" name="payment" value="office-payment" required>
-                <img src="{{ asset('clients/assets/images/contact/icon.png') }}" alt="Office Payment">
-                Thanh toán tại văn phòng
-            </label>
+            <div class="payment-methods-container">
+                <label class="payment-option" for="pay-office">
+                    <input type="radio" name="payment" value="office-payment" id="pay-office" required>
+                    <div class="payment-option-icon">
+                        <img src="{{ asset('clients/assets/images/contact/icon.png') }}" alt="Office Payment">
+                    </div>
+                    <div class="payment-option-info">
+                        <span class="payment-option-title">Thanh toán tại văn phòng</span>
+                        <span class="payment-option-desc">Thanh toán trực tiếp tại văn phòng Travela</span>
+                    </div>
+                    <div class="payment-check"><i class="fas fa-check-circle"></i></div>
+                </label>
 
-            <label class="payment-option">
-                <input type="radio" name="payment" value="paypal-payment" required>
-                <img src="{{ asset('clients/assets/images/booking/cong-thanh-toan-paypal.jpg') }}" alt="PayPal">
-                Thanh toán bằng PayPal
-            </label>
+                <label class="payment-option" for="pay-momo">
+                    <input type="radio" name="payment" value="momo-payment" id="pay-momo" required>
+                    <div class="payment-option-icon">
+                        <img src="{{ asset('clients/assets/images/booking/thanh-toan-momo.jpg') }}" alt="MoMo">
+                    </div>
+                    <div class="payment-option-info">
+                        <span class="payment-option-title">Ví MoMo</span>
+                        <span class="payment-option-desc">Thanh toán nhanh qua ví điện tử MoMo</span>
+                    </div>
+                    <div class="payment-check"><i class="fas fa-check-circle"></i></div>
+                    @if (!is_null($transIdMomo))
+                        <input type="hidden" name="transactionIdMomo" value="{{ $transIdMomo }}">
+                    @endif
+                </label>
 
-            <label class="payment-option">
-                <input type="radio" name="payment" value="momo-payment" required>
-                <img src="{{ asset('clients/assets/images/booking/thanh-toan-momo.jpg') }}" alt="MoMo">
-                Thanh toán bằng Momo
-                @if (!is_null($transIdMomo))
-                    <input type="hidden" name="transactionIdMomo" value="{{ $transIdMomo }}">
-                @endif
-            </label>
+                <label class="payment-option" for="pay-paypal">
+                    <input type="radio" name="payment" value="paypal-payment" id="pay-paypal" required>
+                    <div class="payment-option-icon">
+                        <img src="{{ asset('clients/assets/images/booking/cong-thanh-toan-paypal.jpg') }}" alt="PayPal">
+                    </div>
+                    <div class="payment-option-info">
+                        <span class="payment-option-title">PayPal</span>
+                        <span class="payment-option-desc">Thanh toán quốc tế an toàn qua PayPal</span>
+                    </div>
+                    <div class="payment-check"><i class="fas fa-check-circle"></i></div>
+                </label>
+
+                <label class="payment-option" for="pay-vnpay">
+                    <input type="radio" name="payment" value="vnpay-payment" id="pay-vnpay" required>
+                    <div class="payment-option-icon">
+                        <img src="{{ asset('clients/assets/images/booking/icon-vnpay.png') }}" alt="VNPay">
+                    </div>
+                    <div class="payment-option-info">
+                        <span class="payment-option-title">VNPay</span>
+                        <span class="payment-option-desc">Thanh toán qua cổng VNPay (ATM, Visa, QR)</span>
+                    </div>
+                    <div class="payment-check"><i class="fas fa-check-circle"></i></div>
+                    @if (isset($transIdVnpay) && !is_null($transIdVnpay))
+                        <input type="hidden" name="transactionIdVnpay" value="{{ $transIdVnpay }}">
+                    @endif
+                </label>
+
+                <label class="payment-option" for="pay-bank">
+                    <input type="radio" name="payment" value="bank-transfer" id="pay-bank" required>
+                    <div class="payment-option-icon">
+                        <img src="{{ asset('clients/assets/images/booking/icon-bank-transfer.png') }}" alt="Bank Transfer">
+                    </div>
+                    <div class="payment-option-info">
+                        <span class="payment-option-title">Chuyển khoản ngân hàng</span>
+                        <span class="payment-option-desc">Chuyển khoản trực tiếp qua tài khoản ngân hàng</span>
+                    </div>
+                    <div class="payment-check"><i class="fas fa-check-circle"></i></div>
+                </label>
+            </div>
+
+            <!-- Bank Transfer Info (hidden by default) -->
+            <div id="bank-transfer-info" class="bank-transfer-panel" style="display: none;">
+                <div class="bank-transfer-header">
+                    <i class="fas fa-university"></i>
+                    <h4>Thông tin chuyển khoản</h4>
+                </div>
+                <div class="bank-transfer-details">
+                    <div class="bank-detail-row">
+                        <span class="bank-label">Ngân hàng:</span>
+                        <span class="bank-value">Vietcombank (VCB)</span>
+                    </div>
+                    <div class="bank-detail-row">
+                        <span class="bank-label">Số tài khoản:</span>
+                        <span class="bank-value bank-account-number">1234567890</span>
+                        <button type="button" class="btn-copy-bank" onclick="copyBankAccount()"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="bank-detail-row">
+                        <span class="bank-label">Chủ tài khoản:</span>
+                        <span class="bank-value">NGUYEN HONG QUANG</span>
+                    </div>
+                    <div class="bank-detail-row">
+                        <span class="bank-label">Nội dung CK:</span>
+                        <span class="bank-value bank-content">TRAVELA <span class="bank-tour-id">{{ $tour->tourId }}</span> <span class="bank-phone-placeholder">SDT</span></span>
+                    </div>
+                    <div class="bank-transfer-note">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Vui lòng chuyển khoản đúng nội dung để chúng tôi xác nhận đơn hàng nhanh nhất.</span>
+                    </div>
+                </div>
+            </div>
 
             <input type="hidden" name="payment_hidden" id="payment_hidden">
         </div>
@@ -150,8 +228,11 @@
 
                 <button type="submit" class="booking-btn btn-submit-booking">Xác Nhận</button>
 
-                <button id="btn-momo-payment" class="booking-btn" style="display: none;"
+                <button id="btn-momo-payment" class="booking-btn btn-payment-action" style="display: none;"
                     data-urlmomo = "{{ route('createMomoPayment') }}">Thanh toán với Momo <img src="{{ asset('clients/assets/images/booking/icon-thanh-toan-momo.png') }}" alt="" style="width: 10%"></button>
+
+                <button id="btn-vnpay-payment" class="booking-btn btn-payment-action" style="display: none;"
+                    data-urlvnpay = "{{ route('createVnpayPayment') }}">Thanh toán với VNPay <img src="{{ asset('clients/assets/images/booking/icon-vnpay.png') }}" alt="" style="width: 10%"></button>
 
             </div>
         </div>

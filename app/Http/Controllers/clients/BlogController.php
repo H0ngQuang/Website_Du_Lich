@@ -24,7 +24,7 @@ class BlogController extends Controller
      */
     public function create()
     {
-        //
+    //
     }
 
     /**
@@ -35,7 +35,7 @@ class BlogController extends Controller
      */
     public function store(Request $request)
     {
-        //
+    //
     }
 
     /**
@@ -46,7 +46,7 @@ class BlogController extends Controller
      */
     public function show($id)
     {
-        //
+    //
     }
 
     /**
@@ -57,7 +57,7 @@ class BlogController extends Controller
      */
     public function edit($id)
     {
-        //
+    //
     }
 
     /**
@@ -69,7 +69,7 @@ class BlogController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+    //
     }
 
     /**
@@ -80,6 +80,6 @@ class BlogController extends Controller
      */
     public function destroy($id)
     {
-        //
+    //
     }
 }

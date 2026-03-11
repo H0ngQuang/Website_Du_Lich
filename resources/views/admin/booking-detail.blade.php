@@ -128,6 +128,13 @@
                                                 @elseif ($invoice_booking->paymentMethod == 'paypal-payment')
                                                     <img src="{{ asset('admin/assets/images/icon/icon_paypal.png') }}"
                                                         class="invoice_payment-method" alt="">
+                                                @elseif ($invoice_booking->paymentMethod == 'vnpay-payment')
+                                                    <img src="{{ asset('clients/assets/images/booking/icon-vnpay.png') }}"
+                                                        class="invoice_payment-method" alt="" style="width: 60px;">
+                                                    <span class="badge badge-primary">VNPay</span>
+                                                @elseif ($invoice_booking->paymentMethod == 'bank-transfer')
+                                                    <i class="fa fa-university" style="font-size: 24px; color: #1565c0;"></i>
+                                                    <span class="badge badge-info">Chuyển khoản ngân hàng</span>
                                                 @else
                                                     <img src="{{ asset('admin/assets/images/icon/icon_office.png') }}"
                                                         alt="">

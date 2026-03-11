@@ -30,7 +30,7 @@ class VNPayController extends Controller
         $vnp_ReturnUrl = config('vnpay.return_url');
 
         $vnp_TxnRef = time() . '_' . rand(100, 999); // Mã giao dịch unique
-        $vnp_OrderInfo = 'Thanh toan tour du lich - Travela';
+        $vnp_OrderInfo = 'Thanh_toan_tour_du_lich_Travela';
         $vnp_OrderType = 'billpayment';
         $vnp_Amount = $request->amount * 100; // VNPay yêu cầu số tiền * 100
         $vnp_Locale = 'vn';

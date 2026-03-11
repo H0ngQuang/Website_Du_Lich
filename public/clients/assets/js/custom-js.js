@@ -713,10 +713,11 @@ $(document).ready(function () {
 
         if (paymentMethod === "paypal-payment") {
             var totalPricePayment = totalPrice / 25000; //switch to USD
-            paypal
-                .Buttons({
-                    createOrder: function (data, actions) {
-                        return actions.order.create({
+            if (typeof paypal !== 'undefined') {
+                paypal
+                    .Buttons({
+                        createOrder: function (data, actions) {
+                            return actions.order.create({
                             purchase_units: [
                                 {
                                     amount: {
@@ -761,6 +762,10 @@ $(document).ready(function () {
                     },
                 })
                 .render("#paypal-button-container"); // Render nút PayPal vào thẻ chứa
+            } else {
+                toastr.error("PayPal SDK không khả dụng. Vui lòng kiểm tra lại cấu hình Client ID.");
+                $(".btn-submit-booking").show();
+            }
         }
 
         if (paymentMethod === "momo-payment") {

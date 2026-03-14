@@ -8,6 +8,7 @@ use App\Models\clients\Login;
 use App\Models\clients\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
 use App\Mail\WelcomeEmail;
 
 class LoginController extends Controller
@@ -47,7 +48,7 @@ class LoginController extends Controller
         $dataInsert = [
             'username'         => $username_regis,
             'email'            => $email,
-            'password'         => md5($password_regis),
+            'password'         => Hash::make($password_regis),
             'activation_token' => $activation_token
         ];
 
@@ -97,16 +98,11 @@ class LoginController extends Controller
         $username = $request->username;
         $password = $request->password;
 
-        $data_login = [
-            'username' => $username,
-            'password' => md5($password)
-        ];
+        $user_login = $this->login->login($username);
 
-        $user_login = $this->login->login($data_login);
-        $userId = $this->user->getUserId($username);
-        $user = $this->user->getUser($userId);
-
-        if ($user_login != null) {
+        if ($user_login && Hash::check($password, $user_login->password)) {
+            $userId = $this->user->getUserId($username);
+            $user = $this->user->getUser($userId);
             $request->session()->put('username', $username);
             $request->session()->put('avatar', $user->avatar);
             toastr()->success("Đăng nhập thành công!",'Thông báo');

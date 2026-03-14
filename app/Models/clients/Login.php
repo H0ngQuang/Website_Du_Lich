@@ -48,11 +48,10 @@ class Login extends Model
             ->update(['activation_token' => null, 'isActive' => 'y']);
     }
 
-    public function login($account)
+    public function login($username)
     {
         $getUser = DB::table($this->table)
-            ->where('username', $account['username'])
-            ->where('password', $account['password'])
+            ->where('username', $username)
             ->first();
 
         return $getUser;

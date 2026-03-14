@@ -5,6 +5,7 @@ namespace App\Http\Controllers\clients;
 use App\Http\Controllers\Controller;
 use App\Models\clients\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class UserProfileController extends Controller
 {
@@ -50,8 +51,8 @@ class UserProfileController extends Controller
         $userId = $this->getUserId();
         $user = $this->user->getUser($userId);
 
-        if (md5($req->oldPass) === $user->password) {
-            $update = $this->user->updateUser($userId, ['password' => md5($req->newPass)]);
+        if (Hash::check($req->oldPass, $user->password)) {
+            $update = $this->user->updateUser($userId, ['password' => Hash::make($req->newPass)]);
             if (!$update) {
                 return response()->json(['error' => true, 'message' => 'Mật khẩu mới trùng với mật khẩu cũ!']);
             }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use App\Models\admin\AdminModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AdminManagementController extends Controller
 {
@@ -34,7 +35,7 @@ class AdminManagementController extends Controller
         $oldPass = $admin->password;
 
         if ($password != $oldPass) {
-            $password = md5($password);
+            $password = Hash::make($password);
         }
         
 

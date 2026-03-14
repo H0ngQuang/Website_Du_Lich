@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\clients\Login;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Facades\Hash;
 
 class LoginGoogleController extends Controller
 {
@@ -36,7 +37,7 @@ class LoginGoogleController extends Controller
                     'google_id' => $user->id,
                     'fullName' => $user->name,
                     'username' => 'user-google-' . time(), // Nối thêm timestamp
-                    'password' => md5('12345678'),
+                    'password' => Hash::make('12345678'),
                     'email' => $user->email,
                     'isActive' => 'y'
                 ];

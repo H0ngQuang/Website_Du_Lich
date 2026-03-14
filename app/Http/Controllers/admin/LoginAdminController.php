@@ -5,6 +5,7 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use App\Models\admin\LoginModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class LoginAdminController extends Controller
 {
@@ -25,11 +26,11 @@ class LoginAdminController extends Controller
     public function loginAdmin(Request $request)
     {
         $username = $request->username;
-        $password = md5($request->password);
+        $password = $request->password;
 
-        $login = $this->login->login($username, $password);
+        $login = $this->login->login($username);
 
-        if ($login !== null) {
+        if ($login && Hash::check($password, $login->password)) {
             $request->session()->put('admin', $username);
             toastr()->success('Đăng nhập thành công');
             return redirect()->route('admin.dashboard');

@@ -5,7 +5,11 @@
             <div class="image">
                 <span class="badge bgc-pink">Featured</span>
                 <a href="#" class="heart"><i class="fas fa-heart"></i></a>
-                <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0] . '') }}" alt="Tour List">
+                @if($tour->images->isNotEmpty())
+                    <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0] . '') }}" alt="Tour List">
+                @else
+                    <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}" alt="Tour List">
+                @endif
             </div>
             <div class="content equal-content-fix">
                 <div class="destination-header">

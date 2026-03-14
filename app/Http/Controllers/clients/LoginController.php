@@ -8,6 +8,7 @@ use App\Models\clients\Login;
 use App\Models\clients\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeEmail;
 
 class LoginController extends Controller
 {
@@ -54,6 +55,13 @@ class LoginController extends Controller
 
         // Gửi email kích hoạt
         $this->sendActivationEmail($email, $activation_token);
+
+        // Gửi email chào mừng
+        try {
+            Mail::to($email)->send(new WelcomeEmail($username_regis));
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi welcome email: ' . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,

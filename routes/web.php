@@ -7,6 +7,7 @@ use App\Http\Controllers\admin\DashboardController;
 use App\Http\Controllers\admin\LoginAdminController;
 use App\Http\Controllers\admin\ToursManagementController;
 use App\Http\Controllers\admin\UserManagementController;
+use App\Http\Controllers\admin\PromotionManagementController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\clients\HomeController;
 use App\Http\Controllers\clients\AboutController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\clients\ContactController;
 use App\Http\Controllers\clients\UserProfileController;
 use App\Http\Controllers\clients\LoginController;
 use App\Http\Controllers\clients\LoginGoogleController;
+use App\Http\Controllers\clients\LoyaltyController;
 use App\Http\Controllers\clients\MyTourController;
 use App\Http\Controllers\clients\PayPalController;
 use App\Http\Controllers\clients\SearchController;
@@ -102,12 +104,16 @@ Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/create-contact', [ContactController::class, 'createContact'])->name('create-contact');
 
 
-//Search 
+//Search
 Route::get('/search', [SearchController::class, 'index'])->name(name: 'search');
 Route::get('/search-voice-text', [SearchController::class, 'searchTours'])->name('search-voice-text');
 
 //Chatbot AI
 Route::post('/chatbot/send', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
+
+//Loyalty - Khách hàng thân thiết
+Route::get('/loyalty', [LoyaltyController::class, 'index'])->name('loyalty')->middleware('checkLoginClient');
+Route::post('/apply-promotion', [LoyaltyController::class, 'applyPromotion'])->name('apply-promotion')->middleware('checkLoginClient');
 
 
 //ADMIN
@@ -116,7 +122,6 @@ Route::prefix('admin')->group(function () {
     Route::get('/login', [LoginAdminController::class, 'index'])->name('admin.login');
     Route::post('/login-account', [LoginAdminController::class, 'loginAdmin'])->name('admin.login-account');
     Route::get('/logout', [LoginAdminController::class, 'logout'])->name('admin.logout');
-
 });
 
 Route::prefix('admin')->middleware('admin')->group(function () {
@@ -156,8 +161,15 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     //Send mail pdf
     Route::post('/admin/send-pdf', [BookingManagementController::class, 'sendPdf'])->name('admin.send.pdf');
 
+    //Promotion Management - Quản lý khuyến mãi
+    Route::get('/promotions', [PromotionManagementController::class, 'index'])->name('admin.promotions');
+    Route::post('/add-promotion', [PromotionManagementController::class, 'store'])->name('admin.add-promotion');
+    Route::post('/update-promotion', [PromotionManagementController::class, 'update'])->name('admin.update-promotion');
+    Route::post('/delete-promotion', [PromotionManagementController::class, 'destroy'])->name('admin.delete-promotion');
+
+    Route::get('/customer-loyalty', [PromotionManagementController::class, 'customerLoyalty'])->name('admin.customer-loyalty');
+
     //Contact management
     Route::get('/contact', [ContactManagementController::class, 'index'])->name('admin.contact');
     Route::post('/reply-contact', [ContactManagementController::class, 'replyContact'])->name('admin.reply-contact');
-
 });

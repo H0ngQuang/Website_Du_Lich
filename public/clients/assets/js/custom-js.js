@@ -458,6 +458,7 @@ $(document).ready(function () {
      * ***************************************/
     let discount = 0; // Giảm giá, có thể cập nhật khi áp dụng mã giảm giá
     let totalPrice = 0; // Khai báo biến totalPrice để lưu tổng giá trị
+    let activePromo = null; // Biến lưu trữ mã giảm giá đang áp dụng
 
     function updateSummary() {
         // Lấy số lượng người lớn và trẻ em
@@ -471,6 +472,7 @@ $(document).ready(function () {
         // Tính toán tổng giá cho người lớn và trẻ em
         const adultsTotal = numAdults * adultPrice;
         const childrenTotal = numChildren * childPrice;
+        const baseTotal = adultsTotal + childrenTotal;
 
         // Cập nhật hiển thị số lượng và giá tiền cho từng loại
         $(".quantity__adults").text(numAdults);
@@ -483,8 +485,35 @@ $(document).ready(function () {
             childPrice.toLocaleString() + " VNĐ"
         );
 
+        // Tính lại giảm giá nếu có khuyến mãi đang áp dụng
+        if (activePromo) {
+            let totalPeople = numAdults + numChildren;
+            let discountText = "";
+            
+            if (activePromo.discount_percent > 0) {
+                discount = (baseTotal * activePromo.discount_percent) / 100;
+                discountText = discount.toLocaleString() + " VNĐ";
+            } else if (activePromo.discount_amount > 0) {
+                // Giảm theo số tiền cố định NHÂN VỚI tổng số người
+                discount = activePromo.discount_amount * totalPeople;
+                let formattedAmount = Number(activePromo.discount_amount).toLocaleString();
+                discountText = totalPeople + " x " + formattedAmount + " VNĐ";
+                // discountText = totalPeople + " x " + activePromo.discount_amount.toLocaleString() + " = " + discount.toLocaleString() + " VNĐ";
+
+            }
+            
+            // Không cho giảm quá số tiền cơ sở
+            if (discount > baseTotal) {
+                discount = baseTotal;
+            }
+            $(".summary-item:nth-child(3) .total-price").text(discountText).css('color', '#10b981');
+        } else {
+            discount = 0;
+            $(".summary-item:nth-child(3) .total-price").text("0 VNĐ").css('color', 'inherit');
+        }
+
         // Tính tổng giá trị
-        totalPrice = adultsTotal + childrenTotal - discount;
+        totalPrice = baseTotal - discount;
         $(".summary-item.total-price span:last").text(
             totalPrice.toLocaleString() + " VNĐ"
         );
@@ -562,26 +591,42 @@ $(document).ready(function () {
     // Áp dụng mã giảm giá
     $(".btn-coupon").on("click", function (e) {
         e.preventDefault();
-        const couponCode = $(".order-coupon input").val();
+        const couponCode = $(".order-coupon input").val().trim();
+        const url = $(this).data("url");
 
-        // Giả sử mã giảm giá là "DISCOUNT10" giảm 10%
-        if (couponCode === "DISCOUNT10") {
-            discount =
-                0.1 *
-                (parseInt($("#numAdults").val()) *
-                    $("#numAdults").data("price-adults") +
-                    parseInt($("#numChildren").val()) *
-                        $("#numChildren").data("price-children"));
-            toastr.success("Áp dụng mã giảm giá thành công!");
-        } else {
-            discount = 0;
-            toastr.error("Mã giảm giá không hợp lệ!");
+        if (!couponCode) {
+            toastr.error("Vui lòng nhập mã giảm giá.");
+            return;
         }
+        
+        // Tính tổng tiền cơ sở (chưa giảm)
+        const baseTotal = (parseInt($("#numAdults").val()) * $("#numAdults").data("price-adults")) + 
+                          (parseInt($("#numChildren").val()) * $("#numChildren").data("price-children"));
 
-        $(".summary-item:nth-child(3) .total-price").text(
-            discount.toLocaleString() + " VNĐ"
-        );
-        updateSummary();
+        $.ajax({
+            url: url,
+            method: "POST",
+            data: {
+                _token: $('input[name="_token"]').val(),
+                code: couponCode
+            },
+            success: function(response) {
+                if (response.valid) {
+                    activePromo = response.promotion;
+                    updateSummary();
+                    toastr.success("Áp dụng mã giảm giá thành công: Bạn được giảm " + discount.toLocaleString() + " VNĐ!");
+                } else {
+                    activePromo = null;
+                    updateSummary();
+                    toastr.error(response.message || "Mã giảm giá không hợp lệ!");
+                }
+            },
+            error: function() {
+                activePromo = null;
+                updateSummary();
+                toastr.error("Có lỗi xảy ra khi kiểm tra mã giảm giá.");
+            }
+        });
     });
 
     // Sự kiện khi thay đổi trạng thái checkbox

@@ -25,8 +25,13 @@
                         <div class="image">
                             <div class="ratting"><i class="fas fa-star"></i> {{ number_format($tour->rating, 1) }}</div>
                             <a href="#" class="heart"><i class="fas fa-heart"></i></a>
-                            <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0] . '') }}"
-                                alt="Destination">
+                            @if($tour->images->isNotEmpty())
+                                <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0] . '') }}"
+                                    alt="Destination">
+                            @else
+                                <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}"
+                                    alt="Destination">
+                            @endif
                         </div>
                         <div class="content">
                             <span class="location"><i class="fal fa-map-marker-alt"></i>{{ $tour->destination }}</span>
@@ -137,8 +142,13 @@
                         <div class="destination-item style-two" data-aos-duration="1500" data-aos-offset="50">
                             <div class="image" style="max-height: 250px">
                                 <a href="#" class="heart"><i class="fas fa-heart"></i></a>
-                                <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0]) }}"
-                                    alt="Destination">
+                                @if($tour->images->isNotEmpty())
+                                    <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0]) }}"
+                                        alt="Destination">
+                                @else
+                                    <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}"
+                                        alt="Destination">
+                                @endif
                             </div>
                             <div class="content">
                                 <h6 class="tour-title"><a

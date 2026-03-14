@@ -23,8 +23,13 @@
         <div class="row gap-10 justify-content-center rel">
             <div class="col-lg-4 col-md-6">
                 <div class="gallery-item">
-                    <img src="{{ asset('admin/assets/images/gallery-tours/' . $tourDetail->images[0] . '') }}"
-                        alt="Destination">
+                    @if($tourDetail->images->isNotEmpty())
+                        <img src="{{ asset('admin/assets/images/gallery-tours/' . $tourDetail->images[0] . '') }}"
+                            alt="Tour" style="width: 100%; border-radius: 10px; margin-bottom: 20px;">
+                    @else
+                        <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}"
+                            alt="Tour" style="width: 100%; border-radius: 10px; margin-bottom: 20px;">
+                    @endif
                 </div>
                 <div class="gallery-item">
                     <img src="{{ asset('admin/assets/images/gallery-tours/' . $tourDetail->images[1] . '') }}"
@@ -265,8 +270,13 @@
                                 <div class="destination-item tour-grid style-three bgc-lighter">
                                     <div class="image">
                                         {{-- <span class="badge">10% Off</span> --}}
-                                        <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0]) }}"
-                                            alt="Tour" style="max-height: 137px">
+                                        @if($tour->images->isNotEmpty())
+                                            <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0]) }}"
+                                                alt="Tour" style="max-height: 137px">
+                                        @else
+                                            <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}"
+                                                alt="Tour" style="max-height: 137px">
+                                        @endif
                                     </div>
                                     <div class="content">
                                         <div class="destination-header">

@@ -334,4 +334,48 @@ class Tours extends Model
         return $tourSearch;
     }
 
+    /**
+     * Gợi ý tour liên quan dựa trên destination/domain (fallback khi Python API không khả dụng)
+     */
+    public function getRelatedToursByDestination($tourId, $destination = null, $domain = null, $limit = 5)
+    {
+        $query = DB::table($this->table)
+            ->where('availability', 1)
+            ->where('tourId', '!=', $tourId);
+
+        if ($destination) {
+            $query->where(function ($q) use ($destination, $domain) {
+                $q->where('destination', 'LIKE', '%' . $destination . '%');
+                if ($domain) {
+                    $q->orWhere('domain', $domain);
+                }
+            });
+        }
+
+        $tours = $query->orderByDesc('tourId')->limit($limit)->get();
+
+        // Nếu không đủ tour cùng destination, bổ sung tour phổ biến
+        if ($tours->count() < $limit) {
+            $existingIds = $tours->pluck('tourId')->toArray();
+            $existingIds[] = $tourId;
+
+            $moreTours = DB::table($this->table)
+                ->where('availability', 1)
+                ->whereNotIn('tourId', $existingIds)
+                ->orderByDesc('tourId')
+                ->limit($limit - $tours->count())
+                ->get();
+
+            $tours = $tours->merge($moreTours);
+        }
+
+        foreach ($tours as $tour) {
+            $tour->images = DB::table('tbl_images')
+                ->where('tourId', $tour->tourId)
+                ->pluck('imageUrl');
+            $tour->rating = $this->reviewStats($tour->tourId)->averageRating;
+        }
+
+        return $tours;
+    }
 }

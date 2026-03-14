@@ -12,11 +12,10 @@ class LoginModel extends Model
 
     protected $table = 'tbl_admin';
 
-    public function login($username, $pass)
+    public function login($username)
     {
         return DB::table($this->table)
             ->where('username', $username)
-            ->where('password', $pass)
             ->first();
     }
 }

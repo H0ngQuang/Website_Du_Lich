@@ -148,8 +148,13 @@
                                 <div class="destination-item tour-grid style-three bgc-lighter">
                                     <div class="image">
                                         <span class="badge">10% Off</span>
-                                        <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0]) }}"
-                                            alt="Tour">
+                                        @if($tour->images->isNotEmpty())
+                                            <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0]) }}"
+                                                alt="Tour">
+                                        @else
+                                            <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}"
+                                                alt="Tour">
+                                        @endif
                                     </div>
                                     <div class="content">
                                         <div class="destination-header">

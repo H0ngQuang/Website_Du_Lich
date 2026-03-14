@@ -4,6 +4,7 @@ namespace App\Http\Controllers\clients;
 
 use App\Http\Controllers\Controller;
 use App\Models\clients\Tours;
+use App\Models\clients\TourView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -11,11 +12,13 @@ class TourDetailController extends Controller
 {
 
     private $tours;
+    private $tourView;
 
     public function __construct()
     {
         parent::__construct(); // Gọi constructor của Controller để khởi tạo $user
         $this->tours = new Tours();
+        $this->tourView = new TourView();
     }
     public function index($id = 0)
     {
@@ -37,32 +40,39 @@ class TourDetailController extends Controller
             $checkDisplay = 'hide';
         }
 
+        // Ghi nhận lượt xem tour cho user đã đăng nhập
+        if ($userId) {
+            $this->tourView->recordView($userId, $id);
+        }
 
         // Gọi API Python để lấy danh sách tour liên quan
+        $tourRecommendations = collect();
         try {
             $apiUrl = 'http://127.0.0.1:5555/api/tour-recommendations';
-            $response = Http::get($apiUrl, [
+            $response = Http::timeout(3)->get($apiUrl, [
                 'tour_id' => $id
             ]);
 
             if ($response->successful()) {
                 $relatedTours = $response->json('related_tours');
-            }
-            else {
-                $relatedTours = [];
+                if (!empty($relatedTours)) {
+                    $tourRecommendations = $this->tours->toursRecommendation($relatedTours);
+                }
             }
         }
         catch (\Exception $e) {
-            // Xử lý lỗi khi gọi API
-            $relatedTours = [];
             \Log::error('Lỗi khi gọi API liên quan: ' . $e->getMessage());
         }
 
-        $id_toursRe = $relatedTours;
-
-        $tourRecommendations = $this->tours->toursRecommendation($id_toursRe);
-        // dd($tourRecommendations);    
-        // dd($avgStar);
+        // Fallback: nếu Python API không trả được kết quả, dùng gợi ý theo destination/domain
+        if ($tourRecommendations->isEmpty() && $tourDetail) {
+            $tourRecommendations = $this->tours->getRelatedToursByDestination(
+                $id,
+                $tourDetail->destination ?? null,
+                $tourDetail->domain ?? null,
+                5
+            );
+        }
 
         return view('clients.tour-detail', compact('title', 'tourDetail', 'getReviews', 'avgStar', 'countReview', 'checkDisplay', 'tourRecommendations'));
     }

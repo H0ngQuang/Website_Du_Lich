@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\clients\Booking;
 use App\Models\clients\Checkout;
 use App\Models\clients\Tours;
+use App\Models\clients\TourView;
+use App\Models\clients\CustomerLoyalty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -14,6 +16,8 @@ class BookingController extends Controller
     private $tour;
     private $booking;
     private $checkout;
+    private $tourView;
+    private $loyalty;
 
     public function __construct()
     {
@@ -21,6 +25,8 @@ class BookingController extends Controller
         $this->tour = new Tours();
         $this->booking = new Booking();
         $this->checkout = new Checkout();
+        $this->tourView = new TourView();
+        $this->loyalty = new CustomerLoyalty();
     }
 
     public function index($id)
@@ -97,6 +103,20 @@ class BookingController extends Controller
         $updateQuantity = $this->tour->updateTours($tourId, $dataUpdate);
 
         /******************************* */
+
+        // Đánh dấu tour view đã chuyển đổi (đã mua)
+        if ($userId) {
+            $this->tourView->markConverted($userId, $tourId);
+        }
+
+        // Cập nhật loyalty points
+        if ($userId) {
+            try {
+                $this->loyalty->addBookingPoints($userId, $totalPrice);
+            } catch (\Exception $e) {
+                \Log::error('Lỗi cập nhật loyalty: ' . $e->getMessage());
+            }
+        }
 
         toastr()->success('Đặt tour thành công!');
         return redirect()->route('tour-booked', [

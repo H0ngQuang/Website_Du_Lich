@@ -221,7 +221,7 @@
                 </div>
                 <div class="order-coupon">
                     <input type="text" placeholder="Mã giảm giá" style="width: 65%;">
-                    <button style="width: 30%" class="booking-btn btn-coupon">Áp dụng</button>
+                    <button type="button" style="width: 30%" class="booking-btn btn-coupon" data-url="{{ route('apply-promotion') }}">Áp dụng</button>
                 </div>
 
                 <div id="paypal-button-container"></div>

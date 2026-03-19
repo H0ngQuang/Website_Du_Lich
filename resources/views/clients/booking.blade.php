@@ -183,7 +183,7 @@
             <div class="summary-section">
                 <div>
                     <p>Mã tour : {{ $tour->tourId }}</p>
-                    <input type="hidden" name="tourId" id="tourId" value="{{ $tour->tourId }}">
+                    <input type="hidden" name="tourId" id="tourId" value="{{ $tour->tourId }}" data-sale-percent="{{ $tour->sale_percent ?? 0 }}">
                     <h5 class="widget-title">{{ $tour->title }}</h5>
                     <p>Ngày khởi hành : {{ date('d-m-Y', strtotime($tour->startDate)) }}</p>
                     <p>Ngày kết thúc : {{ date('d-m-Y', strtotime($tour->endDate)) }}</p>
@@ -207,10 +207,12 @@
                             <span class="total-price">0 VNĐ</span>
                         </div>
                     </div>
-                    <div class="summary-item">
-                        <span>Giảm giá:</span>
-                        <div>
-                            <span class="total-price">0 VNĐ</span>
+                    <div id="discount-wrap">
+                        <div class="summary-item">
+                            <span>Giảm giá:</span>
+                            <div>
+                                <span class="total-price">0 VNĐ</span>
+                            </div>
                         </div>
                     </div>
                     <div class="summary-item total-price">

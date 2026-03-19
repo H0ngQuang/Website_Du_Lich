@@ -2,8 +2,12 @@
     <div class="col-xl-4 col-md-6" style="margin-bottom: 30px">
         <div class="destination-item tour-grid style-three bgc-lighter block_tours equal-block-fix" data-aos="fade-up"
             data-aos-duration="1500" data-aos-offset="50">
-            <div class="image">
-                <span class="badge bgc-pink">Featured</span>
+            <div class="image" style="position: relative;">
+                @if($tour->sale_percent > 0)
+                    <span class="badge bgc-secondary" style="position:absolute; top:15px; left:15px; z-index:10;">Giảm {{ $tour->sale_percent }}%</span>
+                @else
+                    <span class="badge bgc-pink">Featured</span>
+                @endif
                 <a href="#" class="heart"><i class="fas fa-heart"></i></a>
                 @if($tour->images->isNotEmpty())
                     <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0] . '') }}" alt="Tour List">
@@ -32,8 +36,18 @@
                     <li><i class="far fa-user"></i>{{ $tour->quantity }}</li>
                 </ul>
                 <div class="destination-footer">
-                    <span class="price"><span>{{ number_format($tour->priceAdult, 0, ',', '.') }}</span>
-                        VND / người</span>
+                    <span class="price">
+                        @if($tour->sale_percent > 0)
+                            @php
+                                $discountedPrice = $tour->priceAdult - ($tour->priceAdult * ($tour->sale_percent / 100));
+                            @endphp
+                            <span style="text-decoration: line-through; font-size: 0.8em; color: #888; margin-right: 5px;">{{ number_format($tour->priceAdult, 0, ',', '.') }}</span>
+                            <span style="color: #e53e3e; font-weight: bold;">{{ number_format($discountedPrice, 0, ',', '.') }}</span>
+                        @else
+                            <span>{{ number_format($tour->priceAdult, 0, ',', '.') }}</span>
+                        @endif
+                        VND / người
+                    </span>
                     <a href="{{ route('tour-detail', ['id' => $tour->tourId]) }}"
                         class="theme-btn style-two style-three">
                         <i class="fal fa-arrow-right"></i>

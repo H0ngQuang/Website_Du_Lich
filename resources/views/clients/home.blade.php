@@ -23,6 +23,9 @@
                     <div class="destination-item block_tours" data-aos="fade-up" data-aos-duration="1500"
                         data-aos-offset="50">
                         <div class="image">
+                            @if($tour->sale_percent > 0)
+                                <span class="badge bgc-secondary" style="position:absolute; top:15px; left:15px; z-index:10;">Giảm {{ $tour->sale_percent }}%</span>
+                            @endif
                             <div class="ratting"><i class="fas fa-star"></i> {{ number_format($tour->rating, 1) }}</div>
                             <a href="#" class="heart"><i class="fas fa-heart"></i></a>
                             @if($tour->images->isNotEmpty())
@@ -40,8 +43,18 @@
                             <span class="time">{{ $tour->time }}</span>
                         </div>
                         <div class="destination-footer">
-                            <span class="price"><span>{{ number_format($tour->priceAdult, 0, ',', '.') }}</span> VND /
-                                người</span>
+                            <span class="price">
+                                @if($tour->sale_percent > 0)
+                                    @php
+                                        $discountedPrice = $tour->priceAdult - ($tour->priceAdult * ($tour->sale_percent / 100));
+                                    @endphp
+                                    <span style="text-decoration: line-through; font-size: 0.8em; color: #888; margin-right: 5px;">{{ number_format($tour->priceAdult, 0, ',', '.') }}</span>
+                                    <span style="color: #e53e3e; font-weight: bold;">{{ number_format($discountedPrice, 0, ',', '.') }}</span>
+                                @else
+                                    <span>{{ number_format($tour->priceAdult, 0, ',', '.') }}</span>
+                                @endif
+                                VND / người
+                            </span>
                             <a href="{{ route('tour-detail', ['id' => $tour->tourId]) }}" class="read-more">Đặt ngay <i
                                     class="fal fa-angle-right"></i></a>
                         </div>
@@ -140,7 +153,10 @@
                         @endif
 
                         <div class="destination-item style-two" data-aos-duration="1500" data-aos-offset="50">
-                            <div class="image" style="max-height: 250px">
+                            <div class="image" style="max-height: 250px; position: relative;">
+                                @if(isset($tour->sale_percent) && $tour->sale_percent > 0)
+                                    <span class="badge bgc-secondary" style="position:absolute; top:15px; left:15px; z-index:10;">Giảm {{ $tour->sale_percent }}%</span>
+                                @endif
                                 <a href="#" class="heart"><i class="fas fa-heart"></i></a>
                                 @if($tour->images->isNotEmpty())
                                     <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0]) }}"

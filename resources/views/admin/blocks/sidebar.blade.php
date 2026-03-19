@@ -41,6 +41,7 @@
                         <ul class="nav child_menu">
                             <li><a href="{{ route('admin.promotions') }}">Khuyến mãi</a></li>
                             <li><a href="{{ route('admin.customer-loyalty') }}">Khách hàng thân thiết</a></li>
+                            <li><a href="{{ route('admin.banners') }}">Quản lý Banner</a></li>
                         </ul>
                     </li>
                     <li><a href="{{ route('admin.contact') }}"><i class="fa fa-envelope-o"></i> Liên hệ </a> </li>

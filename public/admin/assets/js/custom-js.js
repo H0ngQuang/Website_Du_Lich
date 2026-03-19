@@ -138,6 +138,7 @@ $(document).ready(function () {
                     $("input[name='destination']").val(tour.destination);
                     $("select[name='domain']").val(tour.domain); // Giá trị select
                     $("input[name='number']").val(tour.quantity);
+                    $("input[name='sale_percent']").val(tour.sale_percent || 0);
                     $("input[name='price_adult']").val(tour.priceAdult);
                     $("input[name='price_child']").val(tour.priceChild);
                     $("#start_date").val(startDate);
@@ -207,11 +208,6 @@ $(document).ready(function () {
 
         console.log(formDataImages);
 
-        // Kiểm tra formDataImages đã chứa đủ ảnh chưa (ít nhất 5 ảnh)
-        if (formDataImages.length < 5) {
-            toastr.error("Vui lòng tải lên ít nhất 5 ảnh.");
-            return false; // Dừng lại nếu số lượng ảnh không đủ
-        }
 
         return formDataImages;
     }
@@ -280,6 +276,7 @@ $(document).ready(function () {
                         destination: $("input[name='destination']").val(),
                         domain: $("#domain").val(),
                         number: $("input[name='number']").val(),
+                        sale_percent: $("input[name='sale_percent']").val(),
                         price_adult: $("input[name='price_adult']").val(),
                         price_child: $("input[name='price_child']").val(),
                         start_date: $("#start_date").val(),
@@ -404,15 +401,42 @@ $(document).ready(function () {
         $("#edit-tour-modal #wizard .buttonFinish")
             .off("click")
             .on("click", function (e) {
-                // Thêm các timeline entries vào formDataEdit
-                formDataEdit.timeline = []; // Xóa dữ liệu cũ nếu có
+                // Thu thập dữ liệu form Step 1 trực tiếp
+                var description = CKEDITOR.instances["description"] ? CKEDITOR.instances["description"].getData() : '';
+                var finalData = {
+                    tourId: tourIdSendingImage,
+                    name: $("input[name='name']").val(),
+                    destination: $("input[name='destination']").val(),
+                    domain: $("#domain").val(),
+                    number: $("input[name='number']").val(),
+                    sale_percent: $("input[name='sale_percent']").val() || 0,
+                    price_adult: $("input[name='price_adult']").val(),
+                    price_child: $("input[name='price_child']").val(),
+                    start_date: $("#start_date").val(),
+                    end_date: $("#end_date").val(),
+                    description: description,
+                    _token: $('input[name="_token"]').val(),
+                    images: [],
+                    timeline: [],
+                };
+
+                // Thu thập ảnh nếu có
+                if (typeof dropzoneOldImages !== 'undefined' && dropzoneOldImages.files) {
+                    var formDataImages = getFormDataImages();
+                    if (formDataImages !== false) {
+                        finalData.images = formDataImages;
+                    }
+                }
+
+                // Thu thập timeline nếu có
                 $(".timeline-entry").each(function () {
-                    const title = $(this).find('input[name^="day"]').val(); // Lấy title ngày
-                    const itinerary =
-                        CKEDITOR.instances[
-                            $(this).find("textarea").attr("id")
-                        ].getData(); // Lấy lộ trình từ CKEditor
-                    formDataEdit.timeline.push({
+                    var textareaId = $(this).find("textarea").attr("id");
+                    var title = $(this).find('input[name^="day"]').val();
+                    var itinerary = '';
+                    if (textareaId && CKEDITOR.instances[textareaId]) {
+                        itinerary = CKEDITOR.instances[textareaId].getData();
+                    }
+                    finalData.timeline.push({
                         title: title,
                         itinerary: itinerary,
                     });
@@ -420,19 +444,18 @@ $(document).ready(function () {
 
                 console.log(
                     "formDataEdit sau khi nhấn hoàn thành:",
-                    formDataEdit
+                    finalData
                 );
                 var urlUpdate = $("#timeline-form").attr("action");
 
                 $.ajax({
-                    url: urlUpdate, // Thay đổi URL phù hợp với API của bạn
+                    url: urlUpdate,
                     type: "POST",
-                    data: formDataEdit,
+                    data: finalData,
                     success: function (response) {
                         if (response.success) {
                             toastr.success(response.message);
                             $("#edit-tour-modal").modal("hide");
-                            // Reload lại toàn bộ trang
                             location.reload();
                         }
                     },
@@ -441,6 +464,107 @@ $(document).ready(function () {
                     },
                 });
             });
+    });
+
+    // Nút Hoàn thành nhanh - cho phép lưu ngay từ Step 1
+    $(document).on("click", "#btn-quick-finish", function (e) {
+        e.preventDefault();
+
+        // Kiểm tra validation của Step 1 trước khi gửi
+        var finishStep1 = true;
+        $("#form-step1 input, #form-step1 select, #form-step1 textarea").each(function () {
+            if ($(this).prop("required") && $(this).val().trim() === "") {
+                finishStep1 = false;
+                $(this).addClass("is-invalid");
+                toastr.error("Vui lòng điền đầy đủ các trường bắt buộc!", "Lỗi!");
+            } else {
+                $(this).removeClass("is-invalid");
+            }
+        });
+
+        // Kiểm tra khu vực
+        var domain = $("#domain").val();
+        if (!domain) {
+            finishStep1 = false;
+            $("#domain").addClass("is-invalid");
+            toastr.error("Vui lòng chọn khu vực!", "Lỗi!");
+        } else {
+            $("#domain").removeClass("is-invalid");
+        }
+
+        // Kiểm tra mô tả
+        var description = CKEDITOR.instances["description"] ? CKEDITOR.instances["description"].getData() : '';
+        if (!description) {
+            finishStep1 = false;
+            toastr.error("Vui lòng điền mô tả!");
+        }
+
+        if (!finishStep1) {
+            return false;
+        }
+
+        // Thu thập dữ liệu form Step 1
+        var finalData = {
+            tourId: tourIdSendingImage,
+            name: $("input[name='name']").val(),
+            destination: $("input[name='destination']").val(),
+            domain: $("#domain").val(),
+            number: $("input[name='number']").val(),
+            sale_percent: $("input[name='sale_percent']").val() || 0,
+            price_adult: $("input[name='price_adult']").val(),
+            price_child: $("input[name='price_child']").val(),
+            start_date: $("#start_date").val(),
+            end_date: $("#end_date").val(),
+            description: description,
+            _token: $('input[name="_token"]').val(),
+            images: [],
+            timeline: [],
+        };
+
+        // Thu thập ảnh nếu có (giữ nguyên ảnh cũ)
+        if (typeof dropzoneOldImages !== 'undefined' && dropzoneOldImages.files) {
+            var formDataImages = getFormDataImages();
+            if (formDataImages !== false) {
+                finalData.images = formDataImages;
+            }
+        }
+
+        // Thu thập timeline cũ
+        $(".timeline-entry").each(function () {
+            var textareaId = $(this).find("textarea").attr("id");
+            var title = $(this).find('input[name^="day"]').val();
+            var itinerary = '';
+            if (textareaId && CKEDITOR.instances[textareaId]) {
+                itinerary = CKEDITOR.instances[textareaId].getData();
+            }
+            if(title && itinerary) {
+                finalData.timeline.push({
+                    title: title,
+                    itinerary: itinerary,
+                });
+            }
+        });
+
+        console.log("Quick Finish data:", finalData);
+        var urlUpdate = $("#timeline-form").attr("action");
+
+        $.ajax({
+            url: urlUpdate,
+            type: "POST",
+            data: finalData,
+            success: function (response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                    $("#edit-tour-modal").modal("hide");
+                    location.reload();
+                } else {
+                    toastr.error(response.message || "Có lỗi xảy ra.");
+                }
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                toastr.error("Có lỗi xảy ra. Vui lòng thử lại sau.");
+            },
+        });
     });
     // Khi modal đóng
     $("#edit-tour-modal").on("hidden.bs.modal", function () {

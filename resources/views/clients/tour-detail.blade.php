@@ -232,14 +232,28 @@
                             <h6>Vé:</h6>
                             <ul class="tickets clearfix">
                                 <li>
-                                    Người lớn <span
-                                        class="price">{{ number_format($tourDetail->priceAdult, 0, ',', '.') }} VND
-                                    </span>
+                                    Người lớn 
+                                    @if($tourDetail->sale_percent > 0)
+                                        @php
+                                            $discountedAdult = $tourDetail->priceAdult - ($tourDetail->priceAdult * ($tourDetail->sale_percent / 100));
+                                        @endphp
+                                        <span class="price" style="color: #e53e3e; font-weight: bold;">{{ number_format($discountedAdult, 0, ',', '.') }} VND</span>
+                                        <span style="text-decoration: line-through; font-size: 0.8em; color: #888; float: right; margin-right: 10px;">{{ number_format($tourDetail->priceAdult, 0, ',', '.') }} VND</span>
+                                    @else
+                                        <span class="price">{{ number_format($tourDetail->priceAdult, 0, ',', '.') }} VND</span>
+                                    @endif
                                 </li>
                                 <li>
-                                    Trẻ em <span
-                                        class="price">{{ number_format($tourDetail->priceChild, 0, ',', '.') }} VND
-                                    </span>
+                                    Trẻ em 
+                                    @if($tourDetail->sale_percent > 0)
+                                        @php
+                                            $discountedChild = $tourDetail->priceChild - ($tourDetail->priceChild * ($tourDetail->sale_percent / 100));
+                                        @endphp
+                                        <span class="price" style="color: #e53e3e; font-weight: bold;">{{ number_format($discountedChild, 0, ',', '.') }} VND</span>
+                                        <span style="text-decoration: line-through; font-size: 0.8em; color: #888; float: right; margin-right: 10px;">{{ number_format($tourDetail->priceChild, 0, ',', '.') }} VND</span>
+                                    @else
+                                        <span class="price">{{ number_format($tourDetail->priceChild, 0, ',', '.') }} VND</span>
+                                    @endif
                                 </li>
                             </ul>
                             <button type="submit" class="theme-btn style-two w-100 mt-15 mb-5">

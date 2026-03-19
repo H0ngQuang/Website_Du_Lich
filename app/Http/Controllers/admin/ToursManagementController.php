@@ -42,7 +42,7 @@ class ToursManagementController extends Controller
         $start_date = $request->input('start_date');
         $end_date = $request->input('end_date');
         $description = $request->input('description');
-
+        $sale_percent = $request->input('sale_percent', 0);
 
         // Chuyển start_date và end_date từ định dạng d/m/Y sang Y-m-d
         $startDate = Carbon::createFromFormat('d/m/Y', $start_date)->format('Y-m-d');
@@ -69,7 +69,8 @@ class ToursManagementController extends Controller
             'domain' => $domain,
             'availability' => 0,
             'startDate' => $startDate,
-            'endDate' => $endDate
+            'endDate' => $endDate,
+            'sale_percent' => $sale_percent
         ];
         // dd($dataTours);
 
@@ -134,7 +135,8 @@ class ToursManagementController extends Controller
             }
 
             return response()->json(['success' => false, 'message' => 'Failed to save image data'], 500);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             // Xử lý lỗi bất ngờ
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -181,18 +183,6 @@ class ToursManagementController extends Controller
         $tourId = $request->tourId;
 
         $getTour = $this->tours->getTour($tourId);
-        // Lấy ngày bắt đầu của tour và ngày hiện tại
-        $startDate = Carbon::parse($getTour->startDate); // Chuyển đổi ngày bắt đầu sang đối tượng Carbon
-        $today = Carbon::now(); // Lấy ngày hiện tại
-
-        // Kiểm tra nếu ngày bắt đầu <= hôm nay
-        if ($startDate->lessThanOrEqualTo($today)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Không thể chỉnh sửa vì tour đã hoặc đang diễn ra.',
-            ]);
-        }
-
 
         $getImages = $this->tours->getImages($tourId);
         $getTimeLine = $this->tours->getTimeLine($tourId);
@@ -203,7 +193,8 @@ class ToursManagementController extends Controller
                 'images' => $getImages,
                 'timeline' => $getTimeLine
             ]);
-        } else {
+        }
+        else {
             return response()->json([
                 'success' => false,
             ]);
@@ -259,7 +250,8 @@ class ToursManagementController extends Controller
             }
 
             return response()->json(['success' => false, 'message' => 'Failed to save image data'], 500);
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             // Xử lý lỗi bất ngờ
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -275,15 +267,17 @@ class ToursManagementController extends Controller
         $price_adult = $request->input('price_adult');
         $price_child = $request->input('price_child');
         $description = $request->input('description');
+        $sale_percent = $request->input('sale_percent', 0);
 
         $dataTours = [
-            'title'       => $name,
+            'title' => $name,
             'description' => $description,
-            'quantity'    => $quantity,
-            'priceAdult'  => $price_adult,
-            'priceChild'  => $price_child,
+            'quantity' => $quantity,
+            'priceAdult' => $price_adult,
+            'priceChild' => $price_child,
             'destination' => $destination,
-            'domain'      => $domain,
+            'domain' => $domain,
+            'sale_percent' => $sale_percent,
         ];
 
         $delete_timeline = $this->tours->deleteData($tourId, 'tbl_timeline');
@@ -292,14 +286,14 @@ class ToursManagementController extends Controller
         $updateTour = $this->tours->updateTour($tourId, $dataTours);
 
         // Tạo mảng tạm để lưu tên ảnh
-        $images = $request->input('images');  // Mảng các tên ảnh gửi lên từ request
+        $images = $request->input('images'); // Mảng các tên ảnh gửi lên từ request
 
         if ($images && is_array($images)) {
             foreach ($images as $image) {
                 $dataUpload = [
                     'tourId' => $tourId,
-                    'imageURL' => $image, 
-                    'description' => $name  
+                    'imageURL' => $image,
+                    'description' => $name
                 ];
                 $this->tours->uploadImages($dataUpload);
             }
@@ -315,7 +309,7 @@ class ToursManagementController extends Controller
                     'description' => $timeline['itinerary']
                 ];
 
-                $this->tours->addTimeLine($data);  // Gọi phương thức addTimeLine()
+                $this->tours->addTimeLine($data); // Gọi phương thức addTimeLine()
             }
         }
 
@@ -339,7 +333,8 @@ class ToursManagementController extends Controller
                 'message' => $result['message'],
                 'data' => view('admin.partials.list-tours', compact('tours'))->render()
             ]);
-        } else {
+        }
+        else {
             return response()->json([
                 'success' => false,
                 'message' => $result['message']

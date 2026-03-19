@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\clients\Home;
 use App\Models\clients\Tours;
+use App\Models\admin\Banner;
 use Illuminate\Support\Facades\Http;
 
 use function PHPUnit\Framework\isEmpty;
@@ -14,12 +15,14 @@ class HomeController extends Controller
 {
     private $homeTours;
     private $tours;
+    private $bannerModel;
 
     public function __construct()
     {
         parent::__construct();
         $this->homeTours = new Home();
         $this->tours = new Tours();
+        $this->bannerModel = new Banner();
     }
     public function index()
     {
@@ -62,8 +65,11 @@ class HomeController extends Controller
             $toursPopular = $this->tours->toursPopular(6);
         }
 
+        // Lấy banners từ database
+        $banners = $this->bannerModel->getActiveBanners();
+
         // dd($toursPopular);
-        return view('clients.home', compact('title', 'tours', 'toursPopular'));
+        return view('clients.home', compact('title', 'tours', 'toursPopular', 'banners'));
     }
 
 

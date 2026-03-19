@@ -479,43 +479,81 @@ $(document).ready(function () {
 
         $(".quantity__children").text(numChildren);
         $(".summary-item:nth-child(1) .total-price").text(
-            adultPrice.toLocaleString() + " VNĐ"
+            adultPrice.toLocaleString('vi-VN') + " VNĐ"
         );
         $(".summary-item:nth-child(2) .total-price").text(
-            childPrice.toLocaleString() + " VNĐ"
+            childPrice.toLocaleString('vi-VN') + " VNĐ"
         );
+
+        discount = 0; // RESET discount calculation on each summary update
+
+        // Đọc sale_percent
+        const salePercent = parseInt($("#tourId").data("sale-percent")) || 0;
+        let saleDiscount = 0;
+        let discountHtml = '';
+
+        if (salePercent > 0) {
+            saleDiscount = (baseTotal * salePercent) / 100;
+            discount += saleDiscount;
+            discountHtml += `
+                <div class="summary-item discount-item">
+                    <span>Sale ${salePercent}%:</span>
+                    <div>
+                        <span class="total-price" style="color: #e53e3e;">-${saleDiscount.toLocaleString('vi-VN')} VNĐ</span>
+                    </div>
+                </div>`;
+        }
 
         // Tính lại giảm giá nếu có khuyến mãi đang áp dụng
         if (activePromo) {
             let totalPeople = numAdults + numChildren;
-            let discountText = "";
             
             if (activePromo.discount_percent > 0) {
-                discount = (baseTotal * activePromo.discount_percent) / 100;
-                discountText = discount.toLocaleString() + " VNĐ";
+                let promoDiscount = (baseTotal * activePromo.discount_percent) / 100;
+                discount += promoDiscount;
+                discountHtml += `
+                <div class="summary-item discount-item">
+                    <span>Mã ${activePromo.discount_percent}%:</span>
+                    <div>
+                        <span class="total-price" style="color: #e53e3e;">-${promoDiscount.toLocaleString('vi-VN')} VNĐ</span>
+                    </div>
+                </div>`;
             } else if (activePromo.discount_amount > 0) {
                 // Giảm theo số tiền cố định NHÂN VỚI tổng số người
-                discount = activePromo.discount_amount * totalPeople;
-                let formattedAmount = Number(activePromo.discount_amount).toLocaleString();
-                discountText = totalPeople + " x " + formattedAmount + " VNĐ";
-                // discountText = totalPeople + " x " + activePromo.discount_amount.toLocaleString() + " = " + discount.toLocaleString() + " VNĐ";
+                let promoDiscount = activePromo.discount_amount * totalPeople;
+                discount += promoDiscount;
+                discountHtml += `
+                <div class="summary-item discount-item">
+                    <span>Mã giảm giá:</span>
+                    <div>
+                        <span class="total-price" style="color: #e53e3e;">-${promoDiscount.toLocaleString('vi-VN')} VNĐ</span>
+                    </div>
+                </div>`;
+            }
+        }
 
-            }
-            
-            // Không cho giảm quá số tiền cơ sở
-            if (discount > baseTotal) {
-                discount = baseTotal;
-            }
-            $(".summary-item:nth-child(3) .total-price").text(discountText).css('color', '#10b981');
+        // Không cho giảm quá số tiền cơ sở
+        if (discount > baseTotal) {
+            discount = baseTotal;
+        }
+
+        if (discountHtml !== '') {
+            $("#discount-wrap").html(discountHtml);
         } else {
-            discount = 0;
-            $(".summary-item:nth-child(3) .total-price").text("0 VNĐ").css('color', 'inherit');
+            $("#discount-wrap").html(`
+                <div class="summary-item discount-item">
+                    <span>Giảm giá:</span>
+                    <div>
+                        <span class="total-price">0 VNĐ</span>
+                    </div>
+                </div>
+            `);
         }
 
         // Tính tổng giá trị
         totalPrice = baseTotal - discount;
         $(".summary-item.total-price span:last").text(
-            totalPrice.toLocaleString() + " VNĐ"
+            totalPrice.toLocaleString('vi-VN') + " VNĐ"
         );
 
         $(".totalPrice").val(totalPrice);
@@ -614,7 +652,7 @@ $(document).ready(function () {
                 if (response.valid) {
                     activePromo = response.promotion;
                     updateSummary();
-                    toastr.success("Áp dụng mã giảm giá thành công: Bạn được giảm " + discount.toLocaleString() + " VNĐ!");
+                    toastr.success("Áp dụng mã giảm giá thành công: Bạn được giảm " + discount.toLocaleString('vi-VN') + " VNĐ!");
                 } else {
                     activePromo = null;
                     updateSummary();

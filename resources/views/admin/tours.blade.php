@@ -43,6 +43,7 @@
                                                         <th>Thời gian</th>
                                                         <th>Mô tả</th>
                                                         <th>Số lượng</th>
+                                                        <th>Giảm giá (%)</th>
                                                         <th>Giá người lớn</th>
                                                         <th>Giá trẻ em</th>
                                                         <th>Điểm đến</th>
@@ -149,6 +150,12 @@
                                         </div>
                                     </div>
                                     <div class="field item form-group">
+                                        <label class="col-form-label col-md-3 col-sm-3  label-align">Giảm giá (%)</label>
+                                        <div class="col-md-6 col-sm-6">
+                                            <input class="form-control" type="number" name="sale_percent" id="edit_sale_percent" min="0" max="100" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="field item form-group">
                                         <label class="col-form-label col-md-3 col-sm-3  label-align">Giá người
                                             lớn
                                             <span>*</span></label>
@@ -188,6 +195,11 @@
                                         </div>
                                     </div>
                                 </form>
+                                <div style="margin-top: 15px; text-align: right;">
+                                    <button type="button" id="btn-quick-finish" class="btn btn-primary" style="padding: 8px 25px; font-size: 14px;">
+                                        <i class="fa fa-check"></i> Hoàn thành nhanh
+                                    </button>
+                                </div>
 
                             </div>
                             <div id="step-2">

@@ -8,6 +8,7 @@ use App\Http\Controllers\admin\LoginAdminController;
 use App\Http\Controllers\admin\ToursManagementController;
 use App\Http\Controllers\admin\UserManagementController;
 use App\Http\Controllers\admin\PromotionManagementController;
+use App\Http\Controllers\admin\BannerManagementController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\clients\HomeController;
 use App\Http\Controllers\clients\AboutController;
@@ -168,6 +169,13 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::post('/delete-promotion', [PromotionManagementController::class, 'destroy'])->name('admin.delete-promotion');
 
     Route::get('/customer-loyalty', [PromotionManagementController::class, 'customerLoyalty'])->name('admin.customer-loyalty');
+
+    //Banner Management - Quản lý Banner
+    Route::get('/banners', [BannerManagementController::class, 'index'])->name('admin.banners');
+    Route::post('/add-banner', [BannerManagementController::class, 'store'])->name('admin.add-banner');
+    Route::post('/update-banner', [BannerManagementController::class, 'update'])->name('admin.update-banner');
+    Route::post('/toggle-banner', [BannerManagementController::class, 'toggleStatus'])->name('admin.toggle-banner');
+    Route::post('/delete-banner', [BannerManagementController::class, 'destroy'])->name('admin.delete-banner');
 
     //Contact management
     Route::get('/contact', [ContactManagementController::class, 'index'])->name('admin.contact');

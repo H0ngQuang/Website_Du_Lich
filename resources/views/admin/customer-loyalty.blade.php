@@ -8,7 +8,7 @@
             <div class="">
                 <div class="page-title">
                     <div class="title_left">
-                        <h3>Khách hàng thân thiết</h3>
+                        <h3>Tích điểm</h3>
                     </div>
                 </div>
 

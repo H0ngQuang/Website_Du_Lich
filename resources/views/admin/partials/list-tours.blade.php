@@ -4,7 +4,6 @@
         <td>{{ $tour->time }}</td>
         <td>{!! $tour->description !!}</td>
         <td>{{ $tour->quantity }}</td>
-        <td>{{ $tour->sale_percent }}%</td>
         <td>{{ number_format($tour->priceAdult, 0, ',', '.') }}</td>
         <td>{{ number_format($tour->priceChild, 0, ',', '.') }}</td>
         <td>{{ $tour->destination }}</td>

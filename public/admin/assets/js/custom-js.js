@@ -138,7 +138,6 @@ $(document).ready(function () {
                     $("input[name='destination']").val(tour.destination);
                     $("select[name='domain']").val(tour.domain); // Giá trị select
                     $("input[name='number']").val(tour.quantity);
-                    $("input[name='sale_percent']").val(tour.sale_percent || 0);
                     $("input[name='price_adult']").val(tour.priceAdult);
                     $("input[name='price_child']").val(tour.priceChild);
                     $("#start_date").val(startDate);
@@ -276,7 +275,6 @@ $(document).ready(function () {
                         destination: $("input[name='destination']").val(),
                         domain: $("#domain").val(),
                         number: $("input[name='number']").val(),
-                        sale_percent: $("input[name='sale_percent']").val(),
                         price_adult: $("input[name='price_adult']").val(),
                         price_child: $("input[name='price_child']").val(),
                         start_date: $("#start_date").val(),
@@ -409,7 +407,6 @@ $(document).ready(function () {
                     destination: $("input[name='destination']").val(),
                     domain: $("#domain").val(),
                     number: $("input[name='number']").val(),
-                    sale_percent: $("input[name='sale_percent']").val() || 0,
                     price_adult: $("input[name='price_adult']").val(),
                     price_child: $("input[name='price_child']").val(),
                     start_date: $("#start_date").val(),
@@ -510,7 +507,6 @@ $(document).ready(function () {
             destination: $("input[name='destination']").val(),
             domain: $("#domain").val(),
             number: $("input[name='number']").val(),
-            sale_percent: $("input[name='sale_percent']").val() || 0,
             price_adult: $("input[name='price_adult']").val(),
             price_child: $("input[name='price_child']").val(),
             start_date: $("#start_date").val(),

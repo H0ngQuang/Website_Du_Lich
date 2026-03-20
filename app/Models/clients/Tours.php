@@ -5,6 +5,7 @@ namespace App\Models\clients;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Models\admin\SaleCampaign;
 
 class Tours extends Model
 {
@@ -17,6 +18,7 @@ class Tours extends Model
     {
 
         $allTours = DB::table($this->table)->where('availability', 1)->paginate($perPage);
+        $campaignModel = new SaleCampaign();
         foreach ($allTours as $tour) {
             // Lấy danh sách hình ảnh thuộc về tour
             $tour->images = DB::table('tbl_images')
@@ -24,6 +26,11 @@ class Tours extends Model
                 ->pluck('imageUrl');
             // Lấy số lượng đánh giá và số sao trung bình của tour
             $tour->rating = $this->reviewStats($tour->tourId)->averageRating;
+            // Lấy thông tin campaign tốt nhất
+            $campaign = $campaignModel->getBestCampaignForTour($tour->tourId);
+            $tour->active_discount = $campaign ? $campaign->discount_percent : 0;
+            $tour->campaign_name = $campaign ? $campaign->name : null;
+            $tour->campaign_type = $campaign ? $campaign->type : null;
         }
 
         return $allTours;
@@ -46,6 +53,14 @@ class Tours extends Model
             $getTourDetail->timeline = DB::table('tbl_timeline')
                 ->where('tourId', $getTourDetail->tourId)
                 ->get();
+
+            // Lấy % giảm giá từ campaign
+            $campaignModel = new SaleCampaign();
+            // Lấy thông tin campaign tốt nhất
+            $campaign = $campaignModel->getBestCampaignForTour($getTourDetail->tourId);
+            $getTourDetail->active_discount = $campaign ? $campaign->discount_percent : 0;
+            $getTourDetail->campaign_name = $campaign ? $campaign->name : null;
+            $getTourDetail->campaign_type = $campaign ? $campaign->type : null;
         }
 
 
@@ -122,11 +137,17 @@ class Tours extends Model
         $queryLog = DB::getQueryLog();
 
         // Lấy danh sách hình ảnh cho mỗi tour
+        $campaignModel = new SaleCampaign();
         foreach ($tours as $tour) {
             $tour->images = DB::table('tbl_images')
                 ->where('tourId', $tour->tourId)
                 ->pluck('imageUrl');
             $tour->rating = $this->reviewStats($tour->tourId)->averageRating;
+            // Lấy thông tin campaign tốt nhất
+            $campaign = $campaignModel->getBestCampaignForTour($tour->tourId);
+            $tour->active_discount = $campaign ? $campaign->discount_percent : 0;
+            $tour->campaign_name = $campaign ? $campaign->name : null;
+            $tour->campaign_type = $campaign ? $campaign->type : null;
         }
 
         // dd($queryLog); // In ra log truy vấn nếu cần thiết
@@ -228,6 +249,7 @@ class Tours extends Model
         $tours = $tours->where('availability', 1);
         $tours = $tours->limit(12)->get();
 
+        $campaignModel = new SaleCampaign();
         foreach ($tours as $tour) {
             // Lấy danh sách hình ảnh thuộc về tour
             $tour->images = DB::table('tbl_images')
@@ -235,6 +257,11 @@ class Tours extends Model
                 ->pluck('imageUrl');
             // Lấy số lượng đánh giá và số sao trung bình của tour
             $tour->rating = $this->reviewStats($tour->tourId)->averageRating;
+            // Lấy thông tin campaign tốt nhất
+            $campaign = $campaignModel->getBestCampaignForTour($tour->tourId);
+            $tour->active_discount = $campaign ? $campaign->discount_percent : 0;
+            $tour->campaign_name = $campaign ? $campaign->name : null;
+            $tour->campaign_type = $campaign ? $campaign->type : null;
         }
         return $tours;
     }
@@ -253,6 +280,7 @@ class Tours extends Model
             ->whereIn('tourId', $ids)
             ->orderByRaw("FIELD(tourId, " . implode(',', array_map('intval', $ids)) . ")") // Chuyển tất cả các giá trị sang kiểu int và giữ thứ tự
             ->get();
+        $campaignModel = new SaleCampaign();
         foreach ($toursRecom as $tour) {
             // Lấy danh sách hình ảnh thuộc về tour
             $tour->images = DB::table('tbl_images')
@@ -260,6 +288,11 @@ class Tours extends Model
                 ->pluck('imageUrl');
             // Lấy số lượng đánh giá và số sao trung bình của tour
             $tour->rating = $this->reviewStats($tour->tourId)->averageRating;
+            // Lấy thông tin campaign tốt nhất
+            $campaign = $campaignModel->getBestCampaignForTour($tour->tourId);
+            $tour->active_discount = $campaign ? $campaign->discount_percent : 0;
+            $tour->campaign_name = $campaign ? $campaign->name : null;
+            $tour->campaign_type = $campaign ? $campaign->type : null;
         }
 
         return $toursRecom;
@@ -297,6 +330,7 @@ class Tours extends Model
             ->get();
 
 
+        $campaignModel = new SaleCampaign();
         foreach ($toursPopular as $tour) {
             // Lấy danh sách hình ảnh thuộc về tour
             $tour->images = DB::table('tbl_images')
@@ -304,6 +338,11 @@ class Tours extends Model
                 ->pluck('imageUrl');
             // Lấy số lượng đánh giá và số sao trung bình của tour
             $tour->rating = $this->reviewStats($tour->tourId)->averageRating;
+            // Lấy thông tin campaign tốt nhất
+            $campaign = $campaignModel->getBestCampaignForTour($tour->tourId);
+            $tour->active_discount = $campaign ? $campaign->discount_percent : 0;
+            $tour->campaign_name = $campaign ? $campaign->name : null;
+            $tour->campaign_type = $campaign ? $campaign->type : null;
         }
         return $toursPopular;
     }
@@ -322,6 +361,7 @@ class Tours extends Model
             ->whereIn('tourId', $ids)
             ->orderByRaw("FIELD(tourId, " . implode(',', array_map('intval', $ids)) . ")") // Chuyển tất cả các giá trị sang kiểu int và giữ thứ tự
             ->get();
+        $campaignModel = new SaleCampaign();
         foreach ($tourSearch as $tour) {
             // Lấy danh sách hình ảnh thuộc về tour
             $tour->images = DB::table('tbl_images')
@@ -329,6 +369,11 @@ class Tours extends Model
                 ->pluck('imageUrl');
             // Lấy số lượng đánh giá và số sao trung bình của tour
             $tour->rating = $this->reviewStats($tour->tourId)->averageRating;
+            // Lấy thông tin campaign tốt nhất
+            $campaign = $campaignModel->getBestCampaignForTour($tour->tourId);
+            $tour->active_discount = $campaign ? $campaign->discount_percent : 0;
+            $tour->campaign_name = $campaign ? $campaign->name : null;
+            $tour->campaign_type = $campaign ? $campaign->type : null;
         }
 
         return $tourSearch;
@@ -369,11 +414,17 @@ class Tours extends Model
             $tours = $tours->merge($moreTours);
         }
 
+        $campaignModel = new SaleCampaign();
         foreach ($tours as $tour) {
             $tour->images = DB::table('tbl_images')
                 ->where('tourId', $tour->tourId)
                 ->pluck('imageUrl');
             $tour->rating = $this->reviewStats($tour->tourId)->averageRating;
+            // Lấy thông tin campaign tốt nhất
+            $campaign = $campaignModel->getBestCampaignForTour($tour->tourId);
+            $tour->active_discount = $campaign ? $campaign->discount_percent : 0;
+            $tour->campaign_name = $campaign ? $campaign->name : null;
+            $tour->campaign_type = $campaign ? $campaign->type : null;
         }
 
         return $tours;

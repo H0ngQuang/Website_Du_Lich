@@ -582,3 +582,86 @@
     text-overflow: ellipsis; /* Thêm dấu ba chấm vào cuối */
     word-break: break-word; /* Đảm bảo từ không bị tràn ra ngoài */
 }
+
+/****************************************
+*          FLASH SALE BADGE             *
+*****************************************/
+@keyframes flashPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(255,65,108,0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 4px 16px rgba(255,65,108,0.6); }
+}
+
+.flash-sale-badge {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b) !important;
+    color: #fff !important;
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(255,65,108,0.4);
+    animation: flashPulse 1.5s ease-in-out infinite;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* Flash Sale price styling */
+.flash-sale-price-original {
+    text-decoration: line-through;
+    font-size: 0.8em;
+    color: #999;
+    margin-right: 5px;
+}
+
+.flash-sale-price-new {
+    color: #e53e3e;
+    font-weight: bold;
+}
+
+/* Tour detail Flash Sale banner */
+.flash-sale-detail-banner {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(255,65,108,0.3);
+    animation: flashPulse 2s ease-in-out infinite;
+}
+
+.flash-sale-detail-banner .flash-icon {
+    font-size: 24px;
+}
+
+/* Booking page discount breakdown */
+.discount-breakdown {
+    background: linear-gradient(135deg, #fff5f5, #ffe8e8);
+    border: 1px solid #fed7d7;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 10px 0;
+}
+
+.discount-breakdown .discount-label {
+    color: #e53e3e;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.discount-breakdown .discount-amount {
+    color: #e53e3e;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.discount-breakdown .savings-badge {
+    background: #e53e3e;
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+

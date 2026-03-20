@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env.backup
+.env.production
+node_modules
+vendor
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+*.md
+.idea
+.vscode
+.fleet
+tempCodeRunnerFile.*

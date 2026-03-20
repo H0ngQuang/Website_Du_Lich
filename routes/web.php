@@ -9,6 +9,7 @@ use App\Http\Controllers\admin\ToursManagementController;
 use App\Http\Controllers\admin\UserManagementController;
 use App\Http\Controllers\admin\PromotionManagementController;
 use App\Http\Controllers\admin\BannerManagementController;
+use App\Http\Controllers\admin\SaleCampaignController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\clients\HomeController;
 use App\Http\Controllers\clients\AboutController;
@@ -176,6 +177,13 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::post('/update-banner', [BannerManagementController::class, 'update'])->name('admin.update-banner');
     Route::post('/toggle-banner', [BannerManagementController::class, 'toggleStatus'])->name('admin.toggle-banner');
     Route::post('/delete-banner', [BannerManagementController::class, 'destroy'])->name('admin.delete-banner');
+
+    //Sale Campaign Management - Quản lý chiến dịch khuyến mại
+    Route::get('/sale-campaigns', [SaleCampaignController::class, 'index'])->name('admin.sale-campaigns');
+    Route::post('/sale-campaigns/store', [SaleCampaignController::class, 'store'])->name('admin.sale-campaigns.store');
+    Route::post('/sale-campaigns/update', [SaleCampaignController::class, 'update'])->name('admin.sale-campaigns.update');
+    Route::post('/sale-campaigns/toggle', [SaleCampaignController::class, 'toggle'])->name('admin.sale-campaigns.toggle');
+    Route::post('/sale-campaigns/destroy', [SaleCampaignController::class, 'destroy'])->name('admin.sale-campaigns.destroy');
 
     //Contact management
     Route::get('/contact', [ContactManagementController::class, 'index'])->name('admin.contact');

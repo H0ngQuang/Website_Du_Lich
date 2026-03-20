@@ -8,11 +8,11 @@
             <div class="">
                 <div class="page-title">
                     <div class="title_left">
-                        <h3>Quản lý khuyến mãi</h3>
+                        <h3>Quản lý Voucher</h3>
                     </div>
                     <div class="title_right">
                         <button class="btn btn-success pull-right" data-toggle="modal" data-target="#addPromoModal">
-                            <i class="fa fa-plus"></i> Thêm mã khuyến mãi
+                            <i class="fa fa-plus"></i> Thêm mã Voucher
                         </button>
                     </div>
                 </div>
@@ -42,7 +42,7 @@
                 <form id="addPromoForm">
                     @csrf
                     <div class="form-group">
-                        <label>Voucher</label>
+                        <label>Mã giảm giá</label>
                         <input type="text" name="code" class="form-control" placeholder="VD: TRAVELA2026" required style="text-transform:uppercase;">
                     </div>
                     <div class="form-group">

@@ -39,9 +39,9 @@
                     <li><a href="{{ route('admin.booking') }}"><i class="fa fa-home"></i> Quản lý Booking</a> </li>
                     <li><a><i class="fa fa-gift"></i> Marketing<span class="fa fa-chevron-down"></span></a>
                         <ul class="nav child_menu">
-                            <li><a href="{{ route('admin.promotions') }}">Khuyến mãi</a></li>
+                            <li><a href="{{ route('admin.promotions') }}">Voucher</a></li>
                             <li><a href="{{ route('admin.sale-campaigns') }}">Chiến dịch khuyến mại</a></li>
-                            <li><a href="{{ route('admin.customer-loyalty') }}">Khách hàng thân thiết</a></li>
+                            <li><a href="{{ route('admin.customer-loyalty') }}">Tích điểm</a></li>
                             <li><a href="{{ route('admin.banners') }}">Quản lý Banner</a></li>
                         </ul>
                     </li>

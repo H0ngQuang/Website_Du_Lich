@@ -42,7 +42,6 @@ class ToursManagementController extends Controller
         $start_date = $request->input('start_date');
         $end_date = $request->input('end_date');
         $description = $request->input('description');
-        $sale_percent = $request->input('sale_percent', 0);
 
         // Chuyển start_date và end_date từ định dạng d/m/Y sang Y-m-d
         $startDate = Carbon::createFromFormat('d/m/Y', $start_date)->format('Y-m-d');
@@ -70,7 +69,6 @@ class ToursManagementController extends Controller
             'availability' => 0,
             'startDate' => $startDate,
             'endDate' => $endDate,
-            'sale_percent' => $sale_percent
         ];
         // dd($dataTours);
 
@@ -267,7 +265,6 @@ class ToursManagementController extends Controller
         $price_adult = $request->input('price_adult');
         $price_child = $request->input('price_child');
         $description = $request->input('description');
-        $sale_percent = $request->input('sale_percent', 0);
 
         $dataTours = [
             'title' => $name,
@@ -277,7 +274,6 @@ class ToursManagementController extends Controller
             'priceChild' => $price_child,
             'destination' => $destination,
             'domain' => $domain,
-            'sale_percent' => $sale_percent,
         ];
 
         $delete_timeline = $this->tours->deleteData($tourId, 'tbl_timeline');

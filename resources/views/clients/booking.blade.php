@@ -183,7 +183,7 @@
             <div class="summary-section">
                 <div>
                     <p>Mã tour : {{ $tour->tourId }}</p>
-                    <input type="hidden" name="tourId" id="tourId" value="{{ $tour->tourId }}" data-sale-percent="{{ $tour->sale_percent ?? 0 }}">
+                    <input type="hidden" name="tourId" id="tourId" value="{{ $tour->tourId }}" data-sale-percent="{{ $tour->active_discount ?? 0 }}">
                     <h5 class="widget-title">{{ $tour->title }}</h5>
                     <p>Ngày khởi hành : {{ date('d-m-Y', strtotime($tour->startDate)) }}</p>
                     <p>Ngày kết thúc : {{ date('d-m-Y', strtotime($tour->endDate)) }}</p>
@@ -191,27 +191,45 @@
                 </div>
 
                 <div class="order-summary">
-                    <div class="summary-item">
+                    @if(($tour->active_discount ?? 0) > 0)
+                        <div class="discount-breakdown" style="margin-bottom: 15px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <span class="discount-label">⚡ {{ $tour->campaign_name ?? 'Khuyến mại' }} -{{ number_format($tour->active_discount, 0) }}%</span>
+                                <span class="savings-badge">Đang diễn ra</span>
+                            </div>
+                            <div style="margin-top: 8px; font-size: 0.85rem; color: #666;">
+                                Giá gốc người lớn: <span style="text-decoration: line-through;">{{ number_format($tour->priceAdult, 0, ',', '.') }} VNĐ</span>
+                                → <strong style="color: #e53e3e;">{{ number_format($tour->priceAdult - ($tour->priceAdult * $tour->active_discount / 100), 0, ',', '.') }} VNĐ</strong>
+                            </div>
+                            @if($tour->priceChild > 0)
+                            <div style="font-size: 0.85rem; color: #666;">
+                                Giá gốc trẻ em: <span style="text-decoration: line-through;">{{ number_format($tour->priceChild, 0, ',', '.') }} VNĐ</span>
+                                → <strong style="color: #e53e3e;">{{ number_format($tour->priceChild - ($tour->priceChild * $tour->active_discount / 100), 0, ',', '.') }} VNĐ</strong>
+                            </div>
+                            @endif
+                        </div>
+                    @endif
+                    <div class="summary-item summary-item-adult">
                         <span>Người lớn:</span>
                         <div>
                             <span class="quantity__adults">1</span>
                             <span>X</span>
-                            <span class="total-price">0 VNĐ</span>
+                            <span class="total-price" id="adult-unit-price">0 VNĐ</span>
                         </div>
                     </div>
-                    <div class="summary-item">
+                    <div class="summary-item summary-item-child">
                         <span>Trẻ em:</span>
                         <div>
                             <span class="quantity__children">0</span>
                             <span>X</span>
-                            <span class="total-price">0 VNĐ</span>
+                            <span class="total-price" id="child-unit-price">0 VNĐ</span>
                         </div>
                     </div>
                     <div id="discount-wrap">
                         <div class="summary-item">
                             <span>Giảm giá:</span>
                             <div>
-                                <span class="total-price">0 VNĐ</span>
+                                <span class="total-price" style="color: #e53e3e;">0 VNĐ</span>
                             </div>
                         </div>
                     </div>

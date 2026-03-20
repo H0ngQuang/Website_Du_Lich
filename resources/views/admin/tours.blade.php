@@ -43,7 +43,6 @@
                                                         <th>Thời gian</th>
                                                         <th>Mô tả</th>
                                                         <th>Số lượng</th>
-                                                        <th>Giảm giá (%)</th>
                                                         <th>Giá người lớn</th>
                                                         <th>Giá trẻ em</th>
                                                         <th>Điểm đến</th>
@@ -147,12 +146,6 @@
                                             <span>*</span></label>
                                         <div class="col-md-6 col-sm-6">
                                             <input class="form-control" type="number" name="number" required>
-                                        </div>
-                                    </div>
-                                    <div class="field item form-group">
-                                        <label class="col-form-label col-md-3 col-sm-3  label-align">Giảm giá (%)</label>
-                                        <div class="col-md-6 col-sm-6">
-                                            <input class="form-control" type="number" name="sale_percent" id="edit_sale_percent" min="0" max="100" value="0">
                                         </div>
                                     </div>
                                     <div class="field item form-group">

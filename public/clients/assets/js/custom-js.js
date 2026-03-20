@@ -478,10 +478,10 @@ $(document).ready(function () {
         $(".quantity__adults").text(numAdults);
 
         $(".quantity__children").text(numChildren);
-        $(".summary-item:nth-child(1) .total-price").text(
+        $("#adult-unit-price").text(
             adultPrice.toLocaleString('vi-VN') + " VNĐ"
         );
-        $(".summary-item:nth-child(2) .total-price").text(
+        $("#child-unit-price").text(
             childPrice.toLocaleString('vi-VN') + " VNĐ"
         );
 
@@ -524,7 +524,7 @@ $(document).ready(function () {
                 discount += promoDiscount;
                 discountHtml += `
                 <div class="summary-item discount-item">
-                    <span>Mã giảm giá:</span>
+                    <span>Mã giảm giár: </span>
                     <div>
                         <span class="total-price" style="color: #e53e3e;">-${promoDiscount.toLocaleString('vi-VN')} VNĐ</span>
                     </div>

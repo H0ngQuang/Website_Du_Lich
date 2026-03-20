@@ -42,7 +42,7 @@
                 <form id="addPromoForm">
                     @csrf
                     <div class="form-group">
-                        <label>Mã giảm giá</label>
+                        <label>Voucher</label>
                         <input type="text" name="code" class="form-control" placeholder="VD: TRAVELA2026" required style="text-transform:uppercase;">
                     </div>
                     <div class="form-group">

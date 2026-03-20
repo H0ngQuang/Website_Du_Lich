@@ -32,24 +32,32 @@
                     @endif
                 </div>
                 <div class="gallery-item">
-                    <img src="{{ asset('admin/assets/images/gallery-tours/' . $tourDetail->images[1] . '') }}"
-                        alt="Destination">
+                    @if(isset($tourDetail->images[1]))
+                        <img src="{{ asset('admin/assets/images/gallery-tours/' . $tourDetail->images[1] . '') }}"
+                            alt="Destination">
+                    @endif
                 </div>
             </div>
             <div class="col-lg-4 col-md-6">
                 <div class="gallery-item gallery-between">
-                    <img src="{{ asset('admin/assets/images/gallery-tours/' . $tourDetail->images[2] . '') }}"
-                        alt="Destination">
+                    @if(isset($tourDetail->images[2]))
+                        <img src="{{ asset('admin/assets/images/gallery-tours/' . $tourDetail->images[2] . '') }}"
+                            alt="Destination">
+                    @endif
                 </div>
             </div>
             <div class="col-lg-4 col-md-6">
                 <div class="gallery-item">
-                    <img src="{{ asset('admin/assets/images/gallery-tours/' . $tourDetail->images[3] . '') }}"
-                        alt="Destination">
+                    @if(isset($tourDetail->images[3]))
+                        <img src="{{ asset('admin/assets/images/gallery-tours/' . $tourDetail->images[3] . '') }}"
+                            alt="Destination">
+                    @endif
                 </div>
                 <div class="gallery-item">
-                    <img src="{{ asset('admin/assets/images/gallery-tours/' . $tourDetail->images[4] . '') }}"
-                        alt="Destination">
+                    @if(isset($tourDetail->images[4]))
+                        <img src="{{ asset('admin/assets/images/gallery-tours/' . $tourDetail->images[4] . '') }}"
+                            alt="Destination">
+                    @endif
                 </div>
             </div>
         </div>
@@ -229,13 +237,19 @@
                                 <input type="hidden" name="time">
                             </div>
                             <hr class="mb-25">
+                            @if($tourDetail->active_discount > 0)
+                                <div class="flash-sale-detail-banner">
+                                    <span class="flash-icon">⚡</span>
+                                    <span>{{ $tourDetail->campaign_name ?? 'Khuyến mại' }} - Giảm {{ number_format($tourDetail->active_discount, 0) }}%!</span>
+                                </div>
+                            @endif
                             <h6>Vé:</h6>
                             <ul class="tickets clearfix">
                                 <li>
                                     Người lớn 
-                                    @if($tourDetail->sale_percent > 0)
+                                    @if($tourDetail->active_discount > 0)
                                         @php
-                                            $discountedAdult = $tourDetail->priceAdult - ($tourDetail->priceAdult * ($tourDetail->sale_percent / 100));
+                                            $discountedAdult = $tourDetail->priceAdult - ($tourDetail->priceAdult * ($tourDetail->active_discount / 100));
                                         @endphp
                                         <span class="price" style="color: #e53e3e; font-weight: bold;">{{ number_format($discountedAdult, 0, ',', '.') }} VND</span>
                                         <span style="text-decoration: line-through; font-size: 0.8em; color: #888; float: right; margin-right: 10px;">{{ number_format($tourDetail->priceAdult, 0, ',', '.') }} VND</span>
@@ -245,9 +259,9 @@
                                 </li>
                                 <li>
                                     Trẻ em 
-                                    @if($tourDetail->sale_percent > 0)
+                                    @if($tourDetail->active_discount > 0)
                                         @php
-                                            $discountedChild = $tourDetail->priceChild - ($tourDetail->priceChild * ($tourDetail->sale_percent / 100));
+                                            $discountedChild = $tourDetail->priceChild - ($tourDetail->priceChild * ($tourDetail->active_discount / 100));
                                         @endphp
                                         <span class="price" style="color: #e53e3e; font-weight: bold;">{{ number_format($discountedChild, 0, ',', '.') }} VND</span>
                                         <span style="text-decoration: line-through; font-size: 0.8em; color: #888; float: right; margin-right: 10px;">{{ number_format($tourDetail->priceChild, 0, ',', '.') }} VND</span>

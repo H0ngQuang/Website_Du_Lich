@@ -4,9 +4,12 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\admin\ToursModel;
+use App\Imports\ToursImport;
+use App\Exports\ToursTemplateExport;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Intervention\Image\Facades\Image;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ToursManagementController extends Controller
 {
@@ -338,4 +341,58 @@ class ToursManagementController extends Controller
         }
     }
 
+    /**
+     * Download Excel template for tour import
+     */
+    public function downloadTemplate()
+    {
+        return Excel::download(new ToursTemplateExport, 'mau_nhap_tour.xlsx');
+    }
+
+    /**
+     * Import tours from Excel file
+     */
+    public function importTours(Request $request)
+    {
+        try {
+            $file = $request->file('file');
+
+            if (!$file) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vui lòng chọn file Excel để import.',
+                ]);
+            }
+
+            // Validate file type
+            $allowedExtensions = ['xlsx', 'xls', 'csv'];
+            $extension = strtolower($file->getClientOriginalExtension());
+            if (!in_array($extension, $allowedExtensions)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File không hợp lệ. Chỉ chấp nhận: .xlsx, .xls, .csv',
+                ]);
+            }
+
+            $import = new ToursImport();
+            Excel::import($import, $file);
+
+            $successCount = $import->getSuccessCount();
+            $errors = $import->getErrors();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Import hoàn tất! Thêm thành công {$successCount} tour.",
+                'successCount' => $successCount,
+                'errors' => $errors,
+                'totalErrors' => count($errors),
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi khi import: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

@@ -35,6 +35,19 @@
                                                 Chào mừng bạn đến với trang quản lý tour. Tại đây, bạn có thể thêm mới,
                                                 chỉnh sửa, và quản lý tất cả các tour hiện có.
                                             </p>
+                                            <div class="import-excel-section" style="margin-bottom: 20px; padding: 15px; background: #f7f9fc; border-radius: 8px; border: 1px solid #e1e8f0;">
+                                                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                    <span style="font-weight: 600; color: #2c3e50; font-size: 14px;">
+                                                        <i class="fa fa-file-excel-o" style="color: #27ae60;"></i> Nhập Tour từ Excel:
+                                                    </span>
+                                                    <a href="{{ route('admin.download-tour-template') }}" class="btn btn-success btn-sm" style="border-radius: 20px; padding: 6px 18px;">
+                                                        <i class="fa fa-download"></i> Tải file mẫu
+                                                    </a>
+                                                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#import-excel-modal" style="border-radius: 20px; padding: 6px 18px;">
+                                                        <i class="fa fa-upload"></i> Import Excel
+                                                    </button>
+                                                </div>
+                                            </div>
                                             <table id="datatable-listTours" class="table table-striped table-bordered"
                                                 style="width:100%">
                                                 <thead>
@@ -218,6 +231,88 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal Import Excel -->
+<div class="modal fade" id="import-excel-modal" tabindex="-1" role="dialog" aria-labelledby="import-excel-Label" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #2E86C1, #1a5276); color: white;">
+                <h5 class="modal-title" id="import-excel-Label">
+                    <i class="fa fa-file-excel-o"></i> Nhập Tour từ file Excel
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.8;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Upload Area -->
+                <div id="import-upload-area" style="border: 2px dashed #bdc3c7; border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #fafbfc;">
+                    <input type="file" id="import-file-input" accept=".xlsx,.xls,.csv" style="display:none;">
+                    <div id="import-drop-icon">
+                        <i class="fa fa-cloud-upload" style="font-size: 48px; color: #2E86C1; margin-bottom: 15px;"></i>
+                        <h4 style="color: #34495e; margin-bottom: 8px;">Kéo thả file Excel vào đây</h4>
+                        <p style="color: #7f8c8d; margin-bottom: 15px;">hoặc click để chọn file</p>
+                        <span class="btn btn-outline-primary btn-sm" style="border: 1px solid #2E86C1; color: #2E86C1; border-radius: 20px; padding: 6px 20px;">
+                            <i class="fa fa-folder-open"></i> Chọn file
+                        </span>
+                        <p style="color: #95a5a6; font-size: 12px; margin-top: 12px;">
+                            Hỗ trợ: .xlsx, .xls, .csv
+                        </p>
+                    </div>
+                    <div id="import-file-info" style="display: none;">
+                        <i class="fa fa-file-excel-o" style="font-size: 36px; color: #27ae60; margin-bottom: 10px;"></i>
+                        <p id="import-file-name" style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;"></p>
+                        <p id="import-file-size" style="color: #7f8c8d; font-size: 13px;"></p>
+                        <a href="javascript:void(0)" id="import-file-remove" style="color: #e74c3c; font-size: 13px;">
+                            <i class="fa fa-times"></i> Xóa file
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Progress -->
+                <div id="import-progress" style="display: none; margin-top: 20px;">
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fa fa-spinner fa-spin" style="font-size: 32px; color: #2E86C1;"></i>
+                        <p style="margin-top: 10px; color: #34495e; font-weight: 500;">Đang xử lý import...</p>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div id="import-results" style="display: none; margin-top: 20px;">
+                    <div id="import-success-box" style="display: none; background: #eafaf1; border: 1px solid #27ae60; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                        <h5 style="color: #27ae60; margin: 0;">
+                            <i class="fa fa-check-circle"></i>
+                            <span id="import-success-text"></span>
+                        </h5>
+                    </div>
+
+                    <div id="import-errors-box" style="display: none; background: #fef5f5; border: 1px solid #e74c3c; border-radius: 8px; padding: 15px;">
+                        <h5 style="color: #e74c3c; margin-bottom: 10px;">
+                            <i class="fa fa-exclamation-triangle"></i>
+                            <span id="import-errors-title"></span>
+                        </h5>
+                        <div style="max-height: 250px; overflow-y: auto;">
+                            <table class="table table-condensed" style="margin-bottom: 0; font-size: 13px;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">Dòng</th>
+                                        <th>Lỗi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="import-errors-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="btn-start-import" disabled>
+                    <i class="fa fa-upload"></i> Bắt đầu Import
+                </button>
             </div>
         </div>
     </div>

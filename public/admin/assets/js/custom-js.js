@@ -1025,6 +1025,182 @@ $(document).ready(function () {
         }
     });
     /********************************************
+     * IMPORT TOURS FROM EXCEL                   *
+     ********************************************/
+    var importSelectedFile = null;
+
+    // Click vào khu vực upload -> mở file dialog
+    $("#import-upload-area").on("click", function () {
+        $("#import-file-input").click();
+    });
+
+    // Chọn file qua input
+    $("#import-file-input").on("change", function () {
+        var file = this.files[0];
+        if (file) {
+            handleImportFile(file);
+        }
+    });
+
+    // Drag & Drop
+    $("#import-upload-area").on("dragover", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).css({
+            "border-color": "#2E86C1",
+            "background": "#eaf2f8"
+        });
+    });
+
+    $("#import-upload-area").on("dragleave", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).css({
+            "border-color": "#bdc3c7",
+            "background": "#fafbfc"
+        });
+    });
+
+    $("#import-upload-area").on("drop", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).css({
+            "border-color": "#bdc3c7",
+            "background": "#fafbfc"
+        });
+
+        var file = e.originalEvent.dataTransfer.files[0];
+        if (file) {
+            handleImportFile(file);
+        }
+    });
+
+    function handleImportFile(file) {
+        var allowedExtensions = ["xlsx", "xls", "csv"];
+        var ext = file.name.split(".").pop().toLowerCase();
+
+        if (!allowedExtensions.includes(ext)) {
+            toastr.error("File không hợp lệ. Chỉ chấp nhận: .xlsx, .xls, .csv");
+            return;
+        }
+
+        importSelectedFile = file;
+
+        // Hiển thị thông tin file
+        $("#import-drop-icon").hide();
+        $("#import-file-info").show();
+        $("#import-file-name").text(file.name);
+        $("#import-file-size").text(formatFileSize(file.size));
+        $("#btn-start-import").prop("disabled", false);
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return "0 Bytes";
+        var k = 1024;
+        var sizes = ["Bytes", "KB", "MB"];
+        var i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    }
+
+    // Xóa file đã chọn
+    $("#import-file-remove").on("click", function (e) {
+        e.stopPropagation();
+        resetImportModal();
+    });
+
+    function resetImportModal() {
+        importSelectedFile = null;
+        $("#import-file-input").val("");
+        $("#import-drop-icon").show();
+        $("#import-file-info").hide();
+        $("#import-progress").hide();
+        $("#import-results").hide();
+        $("#import-success-box").hide();
+        $("#import-errors-box").hide();
+        $("#btn-start-import").prop("disabled", true).html('<i class="fa fa-upload"></i> Bắt đầu Import');
+    }
+
+    // Reset khi đóng modal
+    $("#import-excel-modal").on("hidden.bs.modal", function () {
+        resetImportModal();
+    });
+
+    // Bắt đầu import
+    $("#btn-start-import").on("click", function () {
+        if (!importSelectedFile) {
+            toastr.error("Vui lòng chọn file Excel!");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append("file", importSelectedFile);
+        formData.append("_token", $('meta[name="csrf-token"]').attr("content"));
+
+        // Hiển thị progress
+        $("#import-upload-area").hide();
+        $("#import-progress").show();
+        $("#import-results").hide();
+        $("#btn-start-import").prop("disabled", true).html('<i class="fa fa-spinner fa-spin"></i> Đang xử lý...');
+
+        $.ajax({
+            url: "/admin/import-tours",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                $("#import-progress").hide();
+                $("#import-results").show();
+
+                if (response.success) {
+                    // Hiển thị kết quả thành công
+                    if (response.successCount > 0) {
+                        $("#import-success-box").show();
+                        $("#import-success-text").text(response.message);
+                    }
+
+                    // Hiển thị lỗi nếu có
+                    if (response.errors && response.errors.length > 0) {
+                        $("#import-errors-box").show();
+                        $("#import-errors-title").text(response.totalErrors + " dòng bị lỗi");
+                        var errorsHtml = "";
+                        response.errors.forEach(function (err) {
+                            errorsHtml += '<tr><td><span class="label label-danger">Dòng ' + err.row + '</span></td><td>' + err.message + '</td></tr>';
+                        });
+                        $("#import-errors-body").html(errorsHtml);
+                    }
+
+                    // Nếu có tour import thành công -> hiển thị nút reload
+                    if (response.successCount > 0) {
+                        $("#btn-start-import").prop("disabled", false).html('<i class="fa fa-refresh"></i> Tải lại trang');
+                        $("#btn-start-import").off("click").on("click", function () {
+                            location.reload();
+                        });
+                    } else {
+                        $("#import-upload-area").show();
+                        $("#btn-start-import").prop("disabled", false).html('<i class="fa fa-upload"></i> Thử lại');
+                    }
+                } else {
+                    toastr.error(response.message);
+                    $("#import-upload-area").show();
+                    $("#btn-start-import").prop("disabled", false).html('<i class="fa fa-upload"></i> Thử lại');
+                }
+            },
+            error: function (xhr) {
+                $("#import-progress").hide();
+                $("#import-upload-area").show();
+                $("#btn-start-import").prop("disabled", false).html('<i class="fa fa-upload"></i> Thử lại');
+
+                var errorMsg = "Có lỗi xảy ra. Vui lòng thử lại sau.";
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                toastr.error(errorMsg);
+            },
+        });
+    });
+
+    /********************************************
      * DASHBOARD                                  *
      ********************************************/
 });

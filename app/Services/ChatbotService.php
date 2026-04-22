@@ -11,18 +11,22 @@ class ChatbotService
     protected $apiKey;
     protected $client;
     protected $models = [
-        'gemini-2.5-flash',
-        'gemini-2.0-flash-lite',
         'gemini-2.0-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-2.5-flash',
     ];
 
     public function __construct()
     {
-        $this->apiKey = env('GEMINI_API_KEY');
+        $this->apiKey = config('services.gemini.api_key', env('GEMINI_API_KEY'));
         $this->client = new Client([
             'timeout' => 30,
             'verify' => false,
         ]);
+
+        if (empty($this->apiKey)) {
+            Log::error('ChatbotService: GEMINI_API_KEY is not set in .env');
+        }
     }
 
     /**
@@ -40,7 +44,8 @@ class ChatbotService
                 return "Hiện tại chưa có tour nào trong hệ thống.";
             }
 
-            $context = "DANH SÁCH CÁC TOUR HIỆN CÓ TRÊN HỆ THỐNG TRAVELA:\n\n";
+            $baseUrl = config('app.url');
+            $context = "DANH SÁCH TOUR THỰC TẾ TRÊN HỆ THỐNG TRAVELA (chỉ được dùng những tour này, KHÔNG được bịa):\n\n";
             foreach ($tours as $tour) {
                 $domain = match($tour->domain ?? '') {
                     'b' => 'Miền Bắc',
@@ -48,12 +53,16 @@ class ChatbotService
                     'n' => 'Miền Nam',
                     default => 'Khác'
                 };
-                $context .= "- Tour: {$tour->title}\n";
-                $context .= "  Giá người lớn: " . number_format($tour->priceAdult, 0, ',', '.') . " VND\n";
-                $context .= "  Giá trẻ em: " . number_format($tour->priceChild, 0, ',', '.') . " VND\n";
-                $context .= "  Thời gian: {$tour->time}\n";
-                $context .= "  Điểm đến: {$tour->destination}\n";
-                $context .= "  Khu vực: {$domain}\n\n";
+                $detailUrl = $baseUrl . '/tour/' . $tour->tourId;
+                $context .= "---\n";
+                $context .= "TourID: {$tour->tourId}\n";
+                $context .= "Tên tour: {$tour->title}\n";
+                $context .= "Giá người lớn: " . number_format($tour->priceAdult, 0, ',', '.') . " VND\n";
+                $context .= "Giá trẻ em: " . number_format($tour->priceChild, 0, ',', '.') . " VND\n";
+                $context .= "Thời gian: {$tour->time}\n";
+                $context .= "Điểm đến: {$tour->destination}\n";
+                $context .= "Khu vực: {$domain}\n";
+                $context .= "Link chi tiết: {$detailUrl}\n\n";
             }
 
             return $context;
@@ -71,25 +80,25 @@ class ChatbotService
         $toursContext = $this->getToursContext();
 
         return <<<PROMPT
-Bạn là "Trợ lý du lịch Travela" - một trợ lý AI thông minh và thân thiện của website du lịch Travela. 
+Bạn là "Trợ lý du lịch Travela" - trợ lý AI của website du lịch Travela.
 
-NHIỆM VỤ CỦA BẠN:
-1. Tư vấn và giới thiệu các tour du lịch Việt Nam đang có trên hệ thống Travela
-2. Trả lời câu hỏi về điểm đến, lịch trình, giá cả các tour
-3. Gợi ý tour phù hợp dựa trên yêu cầu của khách hàng (ngân sách, khu vực, thời gian)
-4. Cung cấp thông tin hữu ích về du lịch Việt Nam (thời tiết, văn hóa, ẩm thực, mẹo du lịch)
-5. Hướng dẫn cách đặt tour trên website
+NHIỆM VỤ:
+1. Tư vấn và giới thiệu tour du lịch Việt Nam dựa HOÀN TOÀN vào dữ liệu thực tế bên dưới
+2. Lọc và gợi ý tour phù hợp với yêu cầu khách hàng (ngân sách, thời gian, khu vực, điểm đến)
+3. Cung cấp link xem chi tiết từng tour để khách có thể click vào
+4. Hướng dẫn cách đặt tour trên website
 
-QUY TẮC:
-- Luôn trả lời bằng tiếng Việt
-- Thân thiện, nhiệt tình, chuyên nghiệp
-- Khi gợi ý tour, hãy dựa trên dữ liệu tour thực bên dưới
-- Nếu khách hỏi về tour cụ thể, hãy gợi ý khách truy cập trang Tours để xem chi tiết
-- Trả lời ngắn gọn, rõ ràng, có cấu trúc
-- Sử dụng emoji phù hợp để tạo sự thân thiện
-- Nếu không biết câu trả lời, hãy thành thật nói rằng bạn không chắc và gợi ý khách liên hệ hotline: 0342589281
+QUY TẮC BẮT BUỘC:
+- Luôn trả lời bằng tiếng Việt, thân thiện, dùng emoji phù hợp
+- **CHỈ được giới thiệu các tour có trong danh sách dữ liệu bên dưới**
+- **TUYỆT ĐỐI KHÔNG được bịa ra tên tour, giá, địa điểm không có trong dữ liệu**
+- Khi khách hỏi tour theo giá (ví dụ "dưới 5 triệu"), hãy lọc và liệt kê ĐÚNG những tour trong dữ liệu có giá phù hợp
+- Khi khách hỏi theo thời gian (ví dụ "3 ngày 2 đêm"), hãy liệt kê ĐÚNG những tour trong dữ liệu có trường "Thời gian" phù hợp
+- Khi liệt kê tour, luôn kèm link chi tiết dạng: [Xem chi tiết](link_chi_tiet)
+- Nếu không có tour phù hợp trong dữ liệu, hãy thành thật nói "Hiện tại chúng tôi chưa có tour phù hợp" và gợi ý các tour gần nhất
+- Nếu không biết câu trả lời, gợi ý khách liên hệ hotline: 0342589281
 
-DỮ LIỆU TOUR:
+DỮ LIỆU TOUR THỰC TẾ:
 {$toursContext}
 PROMPT;
     }
@@ -99,12 +108,43 @@ PROMPT;
      */
     public function sendMessage(string $userMessage, array $conversationHistory = [])
     {
+        Log::info("ChatbotService::sendMessage started. API Key: " . substr($this->apiKey, 0, 5) . "... userMessage: {$userMessage}");
+        if (empty($this->apiKey)) {
+            Log::error('ChatbotService: Cannot send message - GEMINI_API_KEY is not configured');
+            return [
+                'success' => false,
+                'message' => 'Xin lỗi, hệ thống chưa được cấu hình. Vui lòng liên hệ quản trị viên. 🙏'
+            ];
+        }
+
+        $wasRateLimited = false;
+
         foreach ($this->models as $model) {
+            Log::info("Trying model: {$model}");
             $result = $this->tryModel($model, $userMessage, $conversationHistory);
+            
             if ($result['success']) {
+                Log::info("Model {$model} succeeded!");
                 return $result;
             }
-            Log::info("Model {$model} failed, trying next...");
+            
+            if (!empty($result['rate_limited'])) {
+                Log::warning("Model {$model} rate limited (429).");
+                $wasRateLimited = true;
+            }
+            
+            Log::warning("Chatbot: Model {$model} failed, trying next...", [
+                'message_preview' => substr($userMessage, 0, 50)
+            ]);
+        }
+
+        Log::error("All models failed. wasRateLimited: " . ($wasRateLimited ? 'true' : 'false'));
+
+        if ($wasRateLimited) {
+            return [
+                'success' => false,
+                'message' => 'Hệ thống đang nhận quá nhiều yêu cầu. Vui lòng đợi khoảng 30 giây rồi thử lại nhé! ⏳'
+            ];
         }
 
         return [
@@ -125,10 +165,12 @@ PROMPT;
             $contents = [];
 
             foreach ($conversationHistory as $msg) {
+                // Ensure text is clean
+                $text = is_string($msg['text']) ? $msg['text'] : json_encode($msg['text']);
                 $contents[] = [
                     'role' => $msg['role'],
                     'parts' => [
-                        ['text' => $msg['text']]
+                        ['text' => $text]
                     ]
                 ];
             }
@@ -171,6 +213,7 @@ PROMPT;
                 ];
             }
 
+            Log::error("Gemini API missing text in response [{$model}]");
             return [
                 'success' => false,
                 'message' => 'Xin lỗi, tôi không thể xử lý yêu cầu lúc này. 🙏'
@@ -179,7 +222,16 @@ PROMPT;
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             $status = $e->getResponse()->getStatusCode();
             $body = $e->getResponse()->getBody()->getContents();
-            Log::error("Gemini API ClientError [{$model}]", ['status' => $status, 'body' => $body]);
+            Log::error("Gemini API ClientError [{$model}] status: {$status}, body: " . substr($body, 0, 300));
+
+            // Rate limit - trả về thông báo rõ ràng, không cần thử model khác
+            if ($status === 429) {
+                return [
+                    'success' => false,
+                    'message' => 'Hệ thống đang nhận quá nhiều yêu cầu. Vui lòng đợi khoảng 30 giây rồi thử lại nhé! ⏳',
+                    'rate_limited' => true,
+                ];
+            }
 
             return [
                 'success' => false,

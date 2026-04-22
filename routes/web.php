@@ -153,6 +153,10 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::post('/edit-tour', [ToursManagementController::class, 'updateTour'])->name('admin.edit-tour');
     Route::post('/add-temp-images', [ToursManagementController::class, 'uploadTempImagesTours'])->name('admin.add-temp-images');
 
+    //Import Tours from Excel
+    Route::get('/download-tour-template', [ToursManagementController::class, 'downloadTemplate'])->name('admin.download-tour-template');
+    Route::post('/import-tours', [ToursManagementController::class, 'importTours'])->name('admin.import-tours');
+
     //Management Booking
     Route::get('/booking', [BookingManagementController::class, 'index'])->name('admin.booking');
     Route::post('/confirm-booking', [BookingManagementController::class, 'confirmBooking'])->name('admin.confirm-booking');

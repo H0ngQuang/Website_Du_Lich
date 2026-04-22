@@ -127,7 +127,7 @@
     <script src="https://www.paypal.com/sdk/js?client-id={{ env('PAYPAL_SANDBOX_CLIENT_ID') ?: 'test' }}"></script>
 
     <!-- Custom script by Dev Quang-->
-    <script src="{{asset('clients/assets/js/custom-js.js')}}?v=1.0.2"></script>
+    <script src="{{asset('clients/assets/js/custom-js.js')}}?v={{ time() }}"></script>
     <script src="{{asset('clients/assets/js/jquery.datetimepicker.full.min.js')}}"></script>
 
     {{-- AI Chatbot Widget --}}

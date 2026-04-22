@@ -31,25 +31,65 @@ class LoginController extends Controller
 
     public function register(Request $request)
     {
-        $username_regis = $request->username_regis;
-        $email = $request->email;
-        $password_regis = $request->password_regis;
-
-        $checkAccountExist = $this->login->checkUserExist($username_regis, $email);
-        if ($checkAccountExist) {
+        try {
+            $request->validate([
+                'username_register' => [
+                    'required',
+                    'max:50',
+                    'regex:/^[a-zA-Z0-9_]+$/',
+                    'unique:tbl_users,username',
+                ],
+                'email_register' => [
+                    'required',
+                    'email:rfc',
+                    'max:100',
+                    'unique:tbl_users,email',
+                ],
+                'password_register' => [
+                    'required',
+                    'min:8',
+                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/',
+                ],
+                're_pass' => [
+                    'required',
+                    'same:password_register',
+                ],
+            ], [
+                'username_register.required'  => 'Vui lòng nhập tên tài khoản.',
+                'username_register.max'       => 'Tên tài khoản tối đa 50 ký tự.',
+                'username_register.regex'     => 'Tên tài khoản chỉ được chứa chữ cái, số và dấu gạch dưới (_).',
+                'username_register.unique'    => 'Tên tài khoản đã được sử dụng.',
+                'email_register.required'     => 'Vui lòng nhập email.',
+                'email_register.email'        => 'Email không đúng định dạng.',
+                'email_register.max'          => 'Email tối đa 100 ký tự.',
+                'email_register.unique'       => 'Email này đã được đăng ký.',
+                'password_register.required'  => 'Vui lòng nhập mật khẩu.',
+                'password_register.min'       => 'Mật khẩu phải có ít nhất 8 ký tự.',
+                'password_register.regex'     => 'Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt.',
+                're_pass.required'            => 'Vui lòng nhập lại mật khẩu.',
+                're_pass.same'               => 'Mật khẩu nhập lại không khớp.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errors = $e->errors();
+            // Flatten all errors into one message or return field map
             return response()->json([
                 'success' => false,
-                'message' => 'Tên người dùng hoặc email đã tồn tại!'
-            ]);
+                'errors'  => $errors,
+                'message' => collect($errors)->flatten()->first(),
+            ], 422);
         }
 
-        $activation_token = Str::random(60); // Tạo token ngẫu nhiên
-        // Nếu không tồn tại, thực hiện đăng ký
+        $username = strip_tags(trim($request->username_register));
+        $email    = strtolower(trim($request->email_register));
+        $password = $request->password_register;
+
+        $activation_token = Str::random(60);
+
         $dataInsert = [
-            'username'         => $username_regis,
+            'username'         => $username,
             'email'            => $email,
-            'password'         => Hash::make($password_regis),
-            'activation_token' => $activation_token
+            'password'         => Hash::make($password),
+            'activation_token' => $activation_token,
         ];
 
         $this->login->registerAcount($dataInsert);
@@ -59,14 +99,14 @@ class LoginController extends Controller
 
         // Gửi email chào mừng
         try {
-            Mail::to($email)->send(new WelcomeEmail($username_regis));
+            Mail::to($email)->send(new WelcomeEmail($username));
         } catch (\Exception $e) {
             \Log::error('Lỗi gửi welcome email: ' . $e->getMessage());
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.'
+            'message' => 'Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.',
         ]);
     }
 
@@ -74,10 +114,14 @@ class LoginController extends Controller
     {
         $activation_link = route('activate.account', ['token' => $token]);
 
-        Mail::send('clients.mail.emails_activation', ['link' => $activation_link], function ($message) use ($email) {
-            $message->to($email);
-            $message->subject('Kích hoạt tài khoản của bạn');
-        });
+        try {
+            Mail::send('clients.mail.emails_activation', ['link' => $activation_link], function ($message) use ($email) {
+                $message->to($email);
+                $message->subject('Kích hoạt tài khoản của bạn');
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Lỗi gửi activation email: ' . $e->getMessage());
+        }
     }
 
     public function activateAccount($token)

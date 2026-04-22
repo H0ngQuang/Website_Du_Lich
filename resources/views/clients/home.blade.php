@@ -24,7 +24,8 @@
                         data-aos-offset="50">
                         <div class="image">
                             @if($tour->active_discount > 0)
-                                <span class="badge flash-sale-badge" style="position:absolute; top:15px; left:15px; z-index:10; background: linear-gradient(135deg, #ff416c, #ff4b2b); color:#fff; padding: 6px 12px; font-size: 13px; border-radius: 20px; box-shadow: 0 2px 8px rgba(255,65,108,0.4); animation: flashPulse 1.5s ease-in-out infinite;">
+                                <span class="badge flash-sale-badge"
+                                    style="position:absolute; top:15px; left:15px; z-index:10; background: linear-gradient(135deg, #ff416c, #ff4b2b); color:#fff; padding: 6px 12px; font-size: 13px; border-radius: 20px; box-shadow: 0 2px 8px rgba(255,65,108,0.4); animation: flashPulse 1.5s ease-in-out infinite;">
                                     ⚡ Flash Sale -{{ $tour->active_discount }}%
                                 </span>
                             @endif
@@ -32,10 +33,10 @@
                             <a href="#" class="heart"><i class="fas fa-heart"></i></a>
                             @if($tour->images->isNotEmpty())
                                 <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0] . '') }}"
-                                    alt="Destination">
+                                    alt="Destination" style="width: 100%; height: 260px; object-fit: cover;">
                             @else
-                                <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}"
-                                    alt="Destination">
+                                <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}" alt="Destination"
+                                    style="width: 100%; height: 260px; object-fit: cover;">
                             @endif
                         </div>
                         <div class="content">
@@ -50,8 +51,10 @@
                                     @php
                                         $discountedPrice = $tour->priceAdult - ($tour->priceAdult * ($tour->active_discount / 100));
                                     @endphp
-                                    <span style="text-decoration: line-through; font-size: 0.8em; color: #888; margin-right: 5px;">{{ number_format($tour->priceAdult, 0, ',', '.') }}</span>
-                                    <span style="color: #e53e3e; font-weight: bold;">{{ number_format($discountedPrice, 0, ',', '.') }}</span>
+                                    <span
+                                        style="text-decoration: line-through; font-size: 0.8em; color: #888; margin-right: 5px;">{{ number_format($tour->priceAdult, 0, ',', '.') }}</span>
+                                    <span
+                                        style="color: #e53e3e; font-weight: bold;">{{ number_format($discountedPrice, 0, ',', '.') }}</span>
                                 @else
                                     <span>{{ number_format($tour->priceAdult, 0, ',', '.') }}</span>
                                 @endif
@@ -109,16 +112,16 @@
                     </div>
                     <div class="shape"><img src="{{ asset('clients/assets/images/about/shape2.png') }}" alt="Shape">
                     </div>
-                    <div class="shape"><img src="{{ asset('clients/assets/images/about/shape3.png') }}"
-                            alt="Shape"></div>
-                    <div class="shape"><img src="{{ asset('clients/assets/images/about/shape4.png') }}"
-                            alt="Shape"></div>
-                    <div class="shape"><img src="{{ asset('clients/assets/images/about/shape5.png') }}"
-                            alt="Shape"></div>
-                    <div class="shape"><img src="{{ asset('clients/assets/images/about/shape6.png') }}"
-                            alt="Shape"></div>
-                    <div class="shape"><img src="{{ asset('clients/assets/images/about/shape7.png') }}"
-                            alt="Shape"></div>
+                    <div class="shape"><img src="{{ asset('clients/assets/images/about/shape3.png') }}" alt="Shape">
+                    </div>
+                    <div class="shape"><img src="{{ asset('clients/assets/images/about/shape4.png') }}" alt="Shape">
+                    </div>
+                    <div class="shape"><img src="{{ asset('clients/assets/images/about/shape5.png') }}" alt="Shape">
+                    </div>
+                    <div class="shape"><img src="{{ asset('clients/assets/images/about/shape6.png') }}" alt="Shape">
+                    </div>
+                    <div class="shape"><img src="{{ asset('clients/assets/images/about/shape7.png') }}" alt="Shape">
+                    </div>
                     <img src="{{ asset('clients/assets/images/about/about.png') }}" alt="About">
                 </div>
             </div>
@@ -149,45 +152,46 @@
                         @if ($count == 2 || $count == 3)
                             <!-- Cột thứ 3 và thứ 4 sẽ là col-md-6 -->
                             <div class="col-md-6 item ">
-                            @else
+                        @else
                                 <!-- Các cột còn lại sẽ là col-xl-3 col-md-6 -->
                                 <div class="col-xl-3 col-md-6 item ">
-                        @endif
+                            @endif
 
-                        <div class="destination-item style-two" data-aos-duration="1500" data-aos-offset="50">
-                            <div class="image" style="max-height: 250px; position: relative;">
-                                @if(isset($tour->active_discount) && $tour->active_discount > 0)
-                                    <span class="badge flash-sale-badge" style="position:absolute; top:15px; left:15px; z-index:10; background: linear-gradient(135deg, #ff416c, #ff4b2b); color:#fff; padding: 6px 12px; font-size: 13px; border-radius: 20px; box-shadow: 0 2px 8px rgba(255,65,108,0.4); animation: flashPulse 1.5s ease-in-out infinite;">
-                                        ⚡ Flash Sale -{{ $tour->active_discount }}%
-                                    </span>
-                                @endif
-                                <a href="#" class="heart"><i class="fas fa-heart"></i></a>
-                                @if($tour->images->isNotEmpty())
-                                    <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0]) }}"
-                                        alt="Destination">
-                                @else
-                                    <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}"
-                                        alt="Destination">
-                                @endif
-                            </div>
-                            <div class="content">
-                                <h6 class="tour-title"><a
-                                        href="{{ route('tour-detail', ['id' => $tour->tourId]) }}">{{ $tour->title }}</a>
-                                </h6>
-                                <span class="time">{{ $tour->time }}</span>
-                                <a href="{{ route('tour-detail', ['id' => $tour->tourId]) }}" class="more"><i
-                                        class="fas fa-chevron-right"></i></a>
-                            </div>
-                        </div>
+                                <div class="destination-item style-two" data-aos-duration="1500" data-aos-offset="50">
+                                    <div class="image" style="max-height: 250px; position: relative;">
+                                        @if(isset($tour->active_discount) && $tour->active_discount > 0)
+                                            <span class="badge flash-sale-badge"
+                                                style="position:absolute; top:15px; left:15px; z-index:10; background: linear-gradient(135deg, #ff416c, #ff4b2b); color:#fff; padding: 6px 12px; font-size: 13px; border-radius: 20px; box-shadow: 0 2px 8px rgba(255,65,108,0.4); animation: flashPulse 1.5s ease-in-out infinite;">
+                                                ⚡ Flash Sale -{{ $tour->active_discount }}%
+                                            </span>
+                                        @endif
+                                        <a href="#" class="heart"><i class="fas fa-heart"></i></a>
+                                        @if($tour->images->isNotEmpty())
+                                            <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0]) }}"
+                                                alt="Destination" style="width: 100%; height: 260px; object-fit: cover;">
+                                        @else
+                                            <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}"
+                                                alt="Destination" style="width: 100%; height: 260px; object-fit: cover;">
+                                        @endif
+                                    </div>
+                                    <div class="content">
+                                        <h6 class="tour-title"><a
+                                                href="{{ route('tour-detail', ['id' => $tour->tourId]) }}">{{ $tour->title }}</a>
+                                        </h6>
+                                        <span class="time">{{ $tour->time }}</span>
+                                        <a href="{{ route('tour-detail', ['id' => $tour->tourId]) }}" class="more"><i
+                                                class="fas fa-chevron-right"></i></a>
+                                    </div>
+                                </div>
 
-                </div> <!-- Đóng div col-md-6 hoặc col-xl-3 col-md-6 -->
+                            </div> <!-- Đóng div col-md-6 hoặc col-xl-3 col-md-6 -->
 
-                @php $count++; @endphp
-                @endforeach
+                            @php $count++; @endphp
+                    @endforeach
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    </div>
 </section>
 <!-- Popular Destinations Area end -->
 

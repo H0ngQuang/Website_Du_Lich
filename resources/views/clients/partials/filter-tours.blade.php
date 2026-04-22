@@ -4,7 +4,8 @@
             data-aos-duration="1500" data-aos-offset="50">
             <div class="image" style="position: relative;">
                 @if($tour->active_discount > 0)
-                    <span class="badge flash-sale-badge" style="position:absolute; top:15px; left:15px; z-index:10; background: linear-gradient(135deg, #ff416c, #ff4b2b); color:#fff; padding: 6px 12px; font-size: 13px; border-radius: 20px; box-shadow: 0 2px 8px rgba(255,65,108,0.4); animation: flashPulse 1.5s ease-in-out infinite;">
+                    <span class="badge flash-sale-badge"
+                        style="position:absolute; top:15px; left:15px; z-index:10; background: linear-gradient(135deg, #ff416c, #ff4b2b); color:#fff; padding: 6px 12px; font-size: 13px; border-radius: 20px; box-shadow: 0 2px 8px rgba(255,65,108,0.4); animation: flashPulse 1.5s ease-in-out infinite;">
                         ⚡ Flash Sale -{{ $tour->active_discount }}%
                     </span>
                 @else
@@ -12,9 +13,11 @@
                 @endif
                 <a href="#" class="heart"><i class="fas fa-heart"></i></a>
                 @if($tour->images->isNotEmpty())
-                    <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0] . '') }}" alt="Tour List">
+                    <img src="{{ asset('admin/assets/images/gallery-tours/' . $tour->images[0] . '') }}" alt="Tour List"
+                        style="width: 100%; height: 260px; object-fit: cover;">
                 @else
-                    <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}" alt="Tour List">
+                    <img src="{{ asset('admin/assets/images/gallery-tours/default.jpg') }}" alt="Tour List"
+                        style="width: 100%; height: 260px; object-fit: cover;">
                 @endif
             </div>
             <div class="content equal-content-fix">
@@ -43,15 +46,16 @@
                             @php
                                 $discountedPrice = $tour->priceAdult - ($tour->priceAdult * ($tour->active_discount / 100));
                             @endphp
-                            <span style="text-decoration: line-through; font-size: 0.8em; color: #888; margin-right: 5px;">{{ number_format($tour->priceAdult, 0, ',', '.') }}</span>
-                            <span style="color: #e53e3e; font-weight: bold;">{{ number_format($discountedPrice, 0, ',', '.') }}</span>
+                            <span
+                                style="text-decoration: line-through; font-size: 0.8em; color: #888; margin-right: 5px;">{{ number_format($tour->priceAdult, 0, ',', '.') }}</span>
+                            <span
+                                style="color: #e53e3e; font-weight: bold;">{{ number_format($discountedPrice, 0, ',', '.') }}</span>
                         @else
                             <span>{{ number_format($tour->priceAdult, 0, ',', '.') }}</span>
                         @endif
                         VND / người
                     </span>
-                    <a href="{{ route('tour-detail', ['id' => $tour->tourId]) }}"
-                        class="theme-btn style-two style-three">
+                    <a href="{{ route('tour-detail', ['id' => $tour->tourId]) }}" class="theme-btn style-two style-three">
                         <i class="fal fa-arrow-right"></i>
                     </a>
                 </div>

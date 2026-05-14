@@ -39,12 +39,53 @@
 *  BOOKING MANAGEMENT                       *
 ********************************************/
 
-.icon_payment{
-    width: 55px;
-    height: 55px;
+.icon_payment {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
 }
-.invoice_payment-method{
+
+.invoice_payment-method {
     width: 100px;
+}
+
+/* Bảng booking */
+#datatable-booking {
+    font-size: 13px;
+}
+
+/* Cột Tên Tours: rộng hơn, cho phép xuống dòng */
+#datatable-booking th:first-child,
+#datatable-booking td:first-child {
+    min-width: 250px !important;
+    max-width: 350px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+}
+
+/* Các cột nhỏ: thu hẹp lại */
+#datatable-booking th:nth-child(7),  /* NL */
+#datatable-booking td:nth-child(7),
+#datatable-booking th:nth-child(8),  /* TE */
+#datatable-booking td:nth-child(8) {
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    text-align: center !important;
+}
+
+/* Căn giữa dọc tất cả ô */
+#datatable-booking td {
+    vertical-align: middle !important;
+}
+
+/* Prevent DataTables from scrolling page */
+.dataTables_wrapper {
+    position: relative !important;
+}
+
+html, body {
+    scroll-behavior: auto !important;
 }
 
 

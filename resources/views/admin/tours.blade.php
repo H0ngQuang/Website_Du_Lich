@@ -52,18 +52,14 @@
                                                 style="width:100%">
                                                 <thead>
                                                     <tr>
-                                                        <th>Tên</th>
-                                                        <th>Thời gian</th>
-                                                        <th>Mô tả</th>
-                                                        <th>Số lượng</th>
-                                                        <th>Giá người lớn</th>
-                                                        <th>Giá trẻ em</th>
+                                                        <th>Tên tour</th>
                                                         <th>Điểm đến</th>
-                                                        <th>Khả dụng</th>
-                                                        <th>Ngày bắt đầu</th>
-                                                        <th>Ngày kết thúc</th>
-                                                        <th>Sửa</th>
-                                                        <th>Xóa</th>
+                                                        <th>Thời gian</th>
+                                                        <th>Giá tour</th>
+                                                        <th>Số chỗ</th>
+                                                        <th>Lịch trình</th>
+                                                        <th>Trạng thái</th>
+                                                        <th>Thao tác</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="tbody-listTours">
@@ -313,6 +309,28 @@
                 <button type="button" class="btn btn-primary" id="btn-start-import" disabled>
                     <i class="fa fa-upload"></i> Bắt đầu Import
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal Xem Mô Tả Tour -->
+<div class="modal fade" id="tour-description-modal" tabindex="-1" role="dialog" aria-labelledby="tour-description-Label" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content" style="border-radius: 8px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tour-description-Label">
+                    <i class="fa fa-info-circle"></i>
+                    <span id="tour-description-title">Chi tiết mô tả tour</span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="tour-description-body">
+                <!-- Description content will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 6px;">Đóng</button>
             </div>
         </div>
     </div>

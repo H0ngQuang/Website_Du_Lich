@@ -1203,4 +1203,21 @@ $(document).ready(function () {
     /********************************************
      * DASHBOARD                                  *
      ********************************************/
+
+    /********************************************
+     * TOUR DESCRIPTION MODAL                    *
+     ********************************************/
+    $(document).on('click', '.view-description', function () {
+        var tourTitle = $(this).data('tour-title');
+        var tourDescription = $(this).data('tour-description');
+
+        $('#tour-description-title').text(tourTitle);
+        $('#tour-description-body').html(tourDescription);
+    });
+
+    // Cleanup modal content when closed
+    $('#tour-description-modal').on('hidden.bs.modal', function () {
+        $('#tour-description-title').text('Chi tiết mô tả tour');
+        $('#tour-description-body').html('');
+    });
 });

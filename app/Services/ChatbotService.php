@@ -8,7 +8,7 @@ use GuzzleHttp\Client;
 
 class ChatbotService
 {
-    protected $apiKey;
+    protected $apiKey;  
     protected $client;
     protected $models = [
         'gemini-2.0-flash',

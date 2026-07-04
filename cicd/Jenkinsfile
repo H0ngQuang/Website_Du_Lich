@@ -2,13 +2,18 @@ pipeline {
     agent any
 
     environment {
-        HARBOR_URL    = 'harbor.local'
+        // Cập nhật IP Harbor của bạn
+        HARBOR_URL    = '192.168.92.128' 
         HARBOR_PROJ   = 'laravel'
         DOCKER_IMAGE  = "${HARBOR_URL}/${HARBOR_PROJ}/website-du-lich"
         
         HELM_CHART    = './cicd/L02'
         HELM_RELEASE  = 'laravel-release'
         K8S_NAMESPACE = 'default'
+        
+        // Thông tin đăng nhập Harbor (Sửa mật khẩu cho đúng với máy bạn)
+        HARBOR_USER   = 'admin'
+        HARBOR_PASS   = 'Harbor12345' // ️ THAY BẰNG MẬT KHẨU HARBOR THỰC TẾ CỦA BẠN
     }
 
     stages {
@@ -21,12 +26,10 @@ pipeline {
             }
         }
 
-        // ĐÃ XÓA STAGE 2 (Build Environment) vì Dockerfile đã có composer install
-
-        // STAGE 2: Build Docker Image (trước là Stage 3)
-        stage('2. Build Docker Image') {
+        // STAGE 2: Build Docker Image
+        stage('2.Build Docker Image') {
             steps {
-                echo '🐳 Stage 2: Dang build Docker image...'
+                echo ' Stage 2: Dang build Docker image...'
                 sh '''
                     docker build \
                         -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
@@ -37,10 +40,14 @@ pipeline {
             }
         }
 
-        // STAGE 3: Push Image lên Harbor Registry (trước là Stage 4)
+        // STAGE 3: Push Image lên Harbor Registry
         stage('3. Push to Harbor') {
             steps {
-                echo '📤 Stage 3: Dang push image len Harbor...'
+                echo ' Stage 3: Dang push image len Harbor...'
+                
+                // Login vào Harbor trước khi push
+                sh 'docker login -u ${HARBOR_USER} -p ${HARBOR_PASS} ${HARBOR_URL}'
+                
                 sh '''
                     docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
                     docker push ${DOCKER_IMAGE}:latest
@@ -49,7 +56,7 @@ pipeline {
             }
         }
 
-        // STAGE 4: Push Helm Chart (trước là Stage 5)
+        // STAGE 4: Đóng gói Helm Chart
         stage('4. Push to Helm') {
             steps {
                 echo '📦 Stage 4: Dang dong goi Helm chart...'
@@ -62,7 +69,7 @@ pipeline {
             }
         }
 
-        // STAGE 5: Deploy lên Kubernetes (trước là Stage 6)
+        // STAGE 5: Deploy lên Kubernetes
         stage('5. Deploy to K8s') {
             steps {
                 echo '☸️ Stage 5: Dang deploy len Kubernetes...'
@@ -87,7 +94,6 @@ pipeline {
         }
         always {
             echo '🧹 Dang don dep...'
-            // ĐÃ SỬA: Bỏ || true ra ngoài string
             sh 'docker system prune -af || true'
         }
     }

@@ -27,7 +27,7 @@ pipeline {
         }
         stage('2. Run Tests') {
             steps {
-                echo '🧪 Dang chay kiem thu...'
+                echo '🧪 Dang chay kiem thu tu dong (Unit/Feature Test)...'
                 sh '''
                     docker run --rm \
                         -v $(pwd):/app \
@@ -40,9 +40,12 @@ pipeline {
                             composer install --no-interaction && \
                             cp .env.example .env && \
                             php artisan key:generate && \
+                            cp .env .env.testing && \
+                            php artisan key:generate --env=testing && \
                             php artisan test
                         "
                 '''
+                echo '✅ Kiem thu hoan tat!'
             }
         }
         // ️ THÊM STAGE BUILD FRONTEND VÀO ĐÂY (Stage 3 mới)

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-configmap
+  labels:
+    app: laravel-website
+data:
+  APP_NAME: {{ .Values.config.appname | quote }}
+  APP_ENV: {{ .Values.config.appEnv | quote }}
+  APP_DEBUG: {{ .Values.config.appDebug | quote }}
+  APP_URL: {{ .Values.config.appUrl | quote }}
+  DB_CONNECTION: {{ .Values.config.dbConnection | quote }}
+  DB_HOST: {{ .Values.config.dbHost | quote }}
+  DB_PORT: {{ .Values.config.dbPort | quote }}
+  DB_DATABASE: {{ .Values.config.dbDatabase | quote }}
+  LOG_CHANNEL: {{ .Values.config.logChannel | quote }}
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+  labels:
+    app: laravel-website
+
+spec:
+  # 1. REPLICAS: Số lượng Pod (Container) bạn muốn chạy song song
+  replicas: {{ .Values.replicaCount }}
+  
+  # 2. SELECTOR: Bộ lọc để Kubernetes tìm các Pod thuộc về Deployment này
+  selector:
+    matchLabels:
+      app: laravel-website  # ⚠️ QUAN TRỌNG: Phải khớp 100% với label ở dưới
+  
+  # 3. TEMPLATE: Khuôn mẫu để Kubernetes tạo ra Pod mới
+  template:
+    metadata:
+      labels:
+        app: laravel-website # ⚠️ QUAN TRỌNG: Label gán cho Pod (Phải khớp với selector ở trên)
+    spec:
+      containers:
+        - name: laravel-container
+          # Lấy thông tin Docker Image từ file values.yaml
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          
+          # Mở port 80 bên trong container (Nơi Nginx đang lắng nghe)
+          ports:
+            - containerPort: 80
+          
+          # Bơm TOÀN BỘ biến môi trường từ ConfigMap và Secret vào Laravel
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-configmap
+            - secretRef:
+                name: {{ .Release.Name }}-secret
+          
+          # Cấu hình giới hạn tài nguyên (CPU/RAM) lấy từ values.yaml
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

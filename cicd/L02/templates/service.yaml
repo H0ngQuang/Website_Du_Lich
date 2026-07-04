@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-service
+  labels:
+    app: laravel-website
+
+spec:
+  # Loại Service: NodePort (Mở port trên tất cả các node của cụm K8s để truy cập từ bên ngoài)
+  type: {{ .Values.service.type }}
+  
+  ports:
+    - port: {{ .Values.service.port }}       # Port của Service (Cổng nội bộ trong cụm K8s)
+      targetPort: 80                         # Port thực tế đang mở trong Container (Nginx lắng nghe ở port 80)
+      nodePort: {{ .Values.service.nodePort }} # Port mở ra bên ngoài (Ví dụ: 30080)
+      protocol: TCP
+
+  # ️ BỘ LỌC QUAN TRỌNG: Service sẽ tìm các Pod có label này để chuyển tiếp request
+  selector:
+    app: laravel-website 

@@ -1,0 +1,43 @@
+replicaCount: 1
+
+# Cau hinh Docker Image
+image:
+  repository: harbor.local/laravel/website-du-lich # Thay bằng URL Harbor thực tế của bạn
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# Cau hinh Service (Network) 
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30080 # Port để truy cập từ bên ngoài vào
+
+# Tài nguyên CPU/RAM cho Pod
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+ 
+# Cau hinh configmap
+config:
+  appname: "website_Du_Lich"
+  appEnv: "production"
+  appDebug: "false"
+  appUrl: "http://localhost"
+  dbConnection: "mysql"
+  dbHost: "mysql-service" # Tên service MySQL trong Kubernetes
+  dbPort: "3306"
+  dbDatabase: "travella"
+  logChannel: "stderr"
+  logLevel: "debug" 
+
+# Cau hinh Secret (Password)
+secret:
+  appKey: "base64:ThayBangAppKeyThucTeCuaBan" 
+
+  dbUser: "root"
+  
+  dbPassword: "root"

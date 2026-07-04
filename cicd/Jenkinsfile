@@ -27,11 +27,20 @@ pipeline {
         }
         stage('2. Run Tests') {
             steps {
-                echo '🧪 Dang chay kiem thu tu dong (Unit/Feature Test)...'
                 sh '''
-                    docker run --rm \
+                    docker network create test-network
+                    docker run -d --name test-mysql --network test-network \
+                        -e MYSQL_ROOT_PASSWORD=root \
+                        -e MYSQL_DATABASE=testing \
+                        mysql:8.0
+                    
+                    docker run --rm --network test-network \
                         -v $(pwd):/app \
                         -w /app \
+                        -e DB_HOST=test-mysql \
+                        -e DB_DATABASE=testing \
+                        -e DB_USERNAME=root \
+                        -e DB_PASSWORD=root \
                         php:8.3-cli \
                         sh -c "
                             apt-get update && apt-get install -y libzip-dev libpng-dev > /dev/null 2>&1 && \
@@ -40,20 +49,13 @@ pipeline {
                             composer install --no-interaction && \
                             cp .env.example .env && \
                             php artisan key:generate && \
-                            echo 'APP_NAME=Website_Du_Lich' > .env.testing && \
-                            echo 'APP_ENV=testing' >> .env.testing && \
-                            echo 'APP_KEY=' >> .env.testing && \
-                            echo 'APP_DEBUG=true' >> .env.testing && \
-                            echo 'DB_CONNECTION=sqlite' >> .env.testing && \
-                            echo 'DB_DATABASE=:memory:' >> .env.testing && \
-                            echo 'CACHE_DRIVER=array' >> .env.testing && \
-                            echo 'SESSION_DRIVER=array' >> .env.testing && \
-                            echo 'QUEUE_CONNECTION=sync' >> .env.testing && \
-                            php artisan key:generate --env=testing && \
+                            php artisan migrate && \
                             php artisan test
                         "
+                    
+                    docker stop test-mysql
+                    docker network rm test-network
                 '''
-                echo '✅ Kiem thu hoan tat!'
             }
         }
         // ️ THÊM STAGE BUILD FRONTEND VÀO ĐÂY (Stage 3 mới)

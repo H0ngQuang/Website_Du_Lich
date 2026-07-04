@@ -93,16 +93,27 @@ pipeline {
             }
         }
 
-        // STAGE 4: Đóng gói Helm Chart
         stage('6. Push to Helm') {
             steps {
-                echo '📦 Stage 4: Dang dong goi Helm chart...'
+                echo '📦 Stage 6: Dang push Helm chart len Harbor...'
+                
                 sh '''
+                    # Package Helm chart
                     helm package ${HELM_CHART} \
-                        --version ${BUILD_NUMBER} \
+                        --version 0.1.${BUILD_NUMBER} \
                         --destination ./cicd/
+                    
+                    # Login vào Harbor
+                    helm registry login ${HARBOR_URL} \
+                        -u ${HARBOR_USER} \
+                        -p ${HARBOR_PASS}
+                    
+                    # Push lên Harbor (dạng OCI)
+                    helm push ./cicd/${HELM_RELEASE}-0.1.${BUILD_NUMBER}.tgz \
+                        oci://${HARBOR_URL}/${HARBOR_PROJ}
                 '''
-                echo '✅ Helm chart da duoc dong goi!'
+                
+                echo "✅ Da push Helm chart len Harbor!"
             }
         }
 

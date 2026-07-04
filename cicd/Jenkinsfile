@@ -2,12 +2,10 @@ pipeline {
     agent any
 
     environment {
-        // Cấu hình Harbor Registry
-        HARBOR_URL    = 'harbor.local'          // Thay bằng IP Harbor thực tế
+        HARBOR_URL    = 'harbor.local'
         HARBOR_PROJ   = 'laravel'
         DOCKER_IMAGE  = "${HARBOR_URL}/${HARBOR_PROJ}/website-du-lich"
         
-        // Cấu hình Helm
         HELM_CHART    = './cicd/L02'
         HELM_RELEASE  = 'laravel-release'
         K8S_NAMESPACE = 'default'
@@ -18,33 +16,17 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo '📥 Stage 1: Dang lay code tu GitHub...'
-                // Jenkins tự động checkout nếu đã cấu hình SCM ở UI
-                // Nếu dùng Pipeline script from SCM, bước này tự động chạy
                 sh 'echo "✅ Da checkout thanh cong!"'
                 sh 'ls -la'
             }
         }
 
-        // STAGE 2: Build môi trường (Cài dependencies Laravel)
-        stage('Build Environment') {
-            steps {
-                echo '🔧 Stage 2: Dang chuan bi moi truong build...'
-                // Cài đặt Composer dependencies
-                sh '''
-                    docker run --rm \
-                        -v $(pwd):/app \
-                        -w /app \
-                        composer:latest \
-                        composer install --no-dev --optimize-autoloader --no-interaction
-                '''
-                echo '✅ Moi truong da san sang!'
-            }
-        }
+        // ĐÃ XÓA STAGE 2 (Build Environment) vì Dockerfile đã có composer install
 
-        // STAGE 3: Build Docker Image
+        // STAGE 2: Build Docker Image (trước là Stage 3)
         stage('Build Docker Image') {
             steps {
-                echo '🐳 Stage 3: Dang build Docker image...'
+                echo '🐳 Stage 2: Dang build Docker image...'
                 sh '''
                     docker build \
                         -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
@@ -55,13 +37,10 @@ pipeline {
             }
         }
 
-        // STAGE 4: Push Image lên Harbor Registry
+        // STAGE 3: Push Image lên Harbor Registry (trước là Stage 4)
         stage('Push to Harbor') {
             steps {
-                echo '📤 Stage 4: Dang push image len Harbor...'
-                // Login Harbor (cần cấu hình credentials trong Jenkins)
-                // sh 'docker login -u admin -p Harbor12345 ${HARBOR_URL}'
-                
+                echo '📤 Stage 3: Dang push image len Harbor...'
                 sh '''
                     docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
                     docker push ${DOCKER_IMAGE}:latest
@@ -70,29 +49,23 @@ pipeline {
             }
         }
 
-        // STAGE 5: Push Helm Chart lên Harbor (hoặc đóng gói Helm)
+        // STAGE 4: Push Helm Chart (trước là Stage 5)
         stage('Push to Helm') {
             steps {
-                echo '📦 Stage 5: Dang dong goi va push Helm chart...'
-                // Đóng gói Helm chart
+                echo '📦 Stage 4: Dang dong goi Helm chart...'
                 sh '''
                     helm package ${HELM_CHART} \
                         --version ${BUILD_NUMBER} \
                         --destination ./cicd/
                 '''
-                // Push Helm chart lên Harbor (nếu Harbor có Helm registry)
-                // sh '''
-                //     helm push ./cicd/laravel-website-${BUILD_NUMBER}.tgz \
-                //         oci://${HARBOR_URL}/${HELM_PROJ}
-                // '''
                 echo '✅ Helm chart da duoc dong goi!'
             }
         }
 
-        // STAGE 6: Deploy lên Kubernetes
+        // STAGE 5: Deploy lên Kubernetes (trước là Stage 6)
         stage('Deploy to K8s') {
             steps {
-                echo '☸️ Stage 6: Dang deploy len Kubernetes...'
+                echo '☸️ Stage 5: Dang deploy len Kubernetes...'
                 sh '''
                     helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
                         --namespace ${K8S_NAMESPACE} \
@@ -105,19 +78,17 @@ pipeline {
         }
     }
 
-    // Xử lý sau khi pipeline kết thúc
     post {
         success {
             echo '🎉 Pipeline hoan thanh thanh cong!'
-            // Có thể thêm thông báo Slack, email...
         }
         failure {
             echo '❌ Pipeline that bai! Hay kiem tra log de debug.'
         }
         always {
-            // Dọn dẹp Docker images cũ để tránh đầy disk
             echo '🧹 Dang don dep...'
-            sh 'docker system prune -f' || true
+            // ĐÃ SỬA: Bỏ || true ra ngoài string
+            sh 'docker system prune -af || true'
         }
     }
 }

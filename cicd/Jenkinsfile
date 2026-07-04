@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Cập nhật IP Harbor của bạn
-        HARBOR_URL    = '192.168.92.128' 
+        HARBOR_URL    = '192.168.92.128:8088' 
         HARBOR_PROJ   = 'laravel'
         DOCKER_IMAGE  = "${HARBOR_URL}/${HARBOR_PROJ}/website-du-lich"
         

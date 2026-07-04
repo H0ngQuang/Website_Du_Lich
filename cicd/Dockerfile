@@ -1,5 +1,5 @@
-# Khai báo image de build tu do 
-FROM php:8.2-fpm  
+# Khai báo image de build tu do - NÂNG CẤP LÊN PHP 8.3
+FROM php:8.3-fpm  
 
 # Cài đặt Dependencies
 # Cập nhật danh sách package của Ubuntu
@@ -8,8 +8,8 @@ FROM php:8.2-fpm
 # dọn dẹp để giảm kích thước
 
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip libpng-dev libonig-dev libxml2-dev nginx supervisor \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
+    git curl zip unzip libpng-dev libonig-dev libxml2-dev libzip-dev nginx supervisor \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/* 
 
 # Cài Composer

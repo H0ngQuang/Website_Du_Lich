@@ -13,7 +13,7 @@ pipeline {
 
     stages {
         // STAGE 1: Checkout code từ GitHub
-        stage('Checkout') {
+        stage('1. Checkout') {
             steps {
                 echo '📥 Stage 1: Dang lay code tu GitHub...'
                 sh 'echo "✅ Da checkout thanh cong!"'
@@ -24,7 +24,7 @@ pipeline {
         // ĐÃ XÓA STAGE 2 (Build Environment) vì Dockerfile đã có composer install
 
         // STAGE 2: Build Docker Image (trước là Stage 3)
-        stage('Build Docker Image') {
+        stage('2. Build Docker Image') {
             steps {
                 echo '🐳 Stage 2: Dang build Docker image...'
                 sh '''
@@ -38,7 +38,7 @@ pipeline {
         }
 
         // STAGE 3: Push Image lên Harbor Registry (trước là Stage 4)
-        stage('Push to Harbor') {
+        stage('3. Push to Harbor') {
             steps {
                 echo '📤 Stage 3: Dang push image len Harbor...'
                 sh '''
@@ -50,7 +50,7 @@ pipeline {
         }
 
         // STAGE 4: Push Helm Chart (trước là Stage 5)
-        stage('Push to Helm') {
+        stage('4. Push to Helm') {
             steps {
                 echo '📦 Stage 4: Dang dong goi Helm chart...'
                 sh '''
@@ -63,7 +63,7 @@ pipeline {
         }
 
         // STAGE 5: Deploy lên Kubernetes (trước là Stage 6)
-        stage('Deploy to K8s') {
+        stage('5. Deploy to K8s') {
             steps {
                 echo '☸️ Stage 5: Dang deploy len Kubernetes...'
                 sh '''

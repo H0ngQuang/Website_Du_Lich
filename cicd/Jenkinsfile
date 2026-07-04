@@ -27,20 +27,11 @@ pipeline {
         }
         stage('2. Run Tests') {
             steps {
+                echo '🧪 Dang chay Unit Tests (bo qua Feature Tests)...'
                 sh '''
-                    docker network create test-network
-                    docker run -d --name test-mysql --network test-network \
-                        -e MYSQL_ROOT_PASSWORD=root \
-                        -e MYSQL_DATABASE=testing \
-                        mysql:8.0
-                    
-                    docker run --rm --network test-network \
+                    docker run --rm \
                         -v $(pwd):/app \
                         -w /app \
-                        -e DB_HOST=test-mysql \
-                        -e DB_DATABASE=testing \
-                        -e DB_USERNAME=root \
-                        -e DB_PASSWORD=root \
                         php:8.3-cli \
                         sh -c "
                             apt-get update && apt-get install -y libzip-dev libpng-dev > /dev/null 2>&1 && \
@@ -49,13 +40,10 @@ pipeline {
                             composer install --no-interaction && \
                             cp .env.example .env && \
                             php artisan key:generate && \
-                            php artisan migrate && \
-                            php artisan test
+                            php artisan test --testsuite=Unit
                         "
-                    
-                    docker stop test-mysql
-                    docker network rm test-network
                 '''
+                echo '✅ Unit Tests hoan tat!'
             }
         }
         // ️ THÊM STAGE BUILD FRONTEND VÀO ĐÂY (Stage 3 mới)

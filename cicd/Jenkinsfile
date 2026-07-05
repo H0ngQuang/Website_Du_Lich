@@ -126,6 +126,10 @@ pipeline {
                 echo '☸️ Stage 7: Dang deploy len Kubernetes...'
                 
                 sh '''
+                    # 0. DỌN DẸP THƯ MỤC CŨ (Fix lỗi "already exists")
+                    rm -rf ./deploy
+                    mkdir -p ./deploy
+                    
                     # 1. Login vào Harbor để pull Helm chart
                     helm registry login ${HARBOR_URL} \
                         -u ${HARBOR_USER} \
@@ -147,11 +151,11 @@ pipeline {
                         --set image.tag=${BUILD_NUMBER} \
                         --set image.pullPolicy=Always \
                         --wait \
-                        --timeout 300s  
-                    
+                        --timeout 600s
+                        
                     # 4. Kiểm tra trạng thái deployment
-                    kubectl get pods -n ${K8S_NAMESPACE} -l app=${HELM_RELEASE}
-                    kubectl get svc -n ${K8S_NAMESPACE} -l app=${HELM_RELEASE}
+                    kubectl get pods -n ${K8S_NAMESPACE}
+                    kubectl get svc -n ${K8S_NAMESPACE}
                 '''
                 
                 echo "✅ Deploy thanh cong ban ${BUILD_NUMBER}!"

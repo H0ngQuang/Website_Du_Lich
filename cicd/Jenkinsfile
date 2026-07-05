@@ -8,7 +8,7 @@ pipeline {
         DOCKER_IMAGE  = "${HARBOR_URL}/${HARBOR_PROJ}/website-du-lich"
         
         HELM_CHART    = './cicd/L02'
-        HELM_RELEASE  = 'laravel-release'
+        HELM_RELEASE  = 'website-du-lich'
         K8S_NAMESPACE = 'default'
         
         // Thông tin đăng nhập Harbor (Sửa mật khẩu cho đúng với máy bạn)

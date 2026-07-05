@@ -96,23 +96,26 @@ pipeline {
         stage('6. Push to Helm') {
             steps {
                 echo '📦 Stage 6: Dang push Helm chart len Harbor...'
-                
                 sh '''
                     # Package Helm chart
                     helm package ${HELM_CHART} \
                         --version 0.1.${BUILD_NUMBER} \
                         --destination ./cicd/
                     
-                    # Login vào Harbor
+                    # Login vào Harbor (thêm --plain-http)
                     helm registry login ${HARBOR_URL} \
                         -u ${HARBOR_USER} \
-                        -p ${HARBOR_PASS}
+                        -p ${HARBOR_PASS} \
+                        --plain-http
                     
-                    # Push lên Harbor (dạng OCI)
-                    helm push ./cicd/${HELM_RELEASE}-0.1.${BUILD_NUMBER}.tgz \
-                        oci://${HARBOR_URL}/${HARBOR_PROJ}
+                    # Tìm file .tgz vừa tạo
+                    CHART_FILE=$(ls -t ./cicd/*.tgz | head -1)
+                    echo "📦 Dang push file: ${CHART_FILE}"
+                    
+                    # Push lên Harbor (thêm --plain-http)
+                    helm push ${CHART_FILE} oci://${HARBOR_URL}/${HARBOR_PROJ} \
+                        --plain-http
                 '''
-                
                 echo "✅ Da push Helm chart len Harbor!"
             }
         }
@@ -120,7 +123,7 @@ pipeline {
         // STAGE 5: Deploy lên Kubernetes
         stage('7. Deploy to K8s') {
             steps {
-                echo '☸️ Stage 5: Dang deploy len Kubernetes...'
+                echo '☸️ Stage : Dang deploy len Kubernetes...'
                 sh '''
                     helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
                         --namespace ${K8S_NAMESPACE} \

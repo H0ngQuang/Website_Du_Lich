@@ -147,8 +147,7 @@ pipeline {
                         --set image.tag=${BUILD_NUMBER} \
                         --set image.pullPolicy=Always \
                         --wait \
-                        --timeout 300s \
-                        --atomic
+                        --timeout 300s  
                     
                     # 4. Kiểm tra trạng thái deployment
                     kubectl get pods -n ${K8S_NAMESPACE} -l app=${HELM_RELEASE}

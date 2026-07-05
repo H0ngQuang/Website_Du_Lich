@@ -123,14 +123,38 @@ pipeline {
         // STAGE 5: Deploy lên Kubernetes
         stage('7. Deploy to K8s') {
             steps {
-                echo '☸️ Stage : Dang deploy len Kubernetes...'
+                echo '☸️ Stage 7: Dang deploy len Kubernetes...'
+                
                 sh '''
-                    helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
+                    # 1. Login vào Harbor để pull Helm chart
+                    helm registry login ${HARBOR_URL} \
+                        -u ${HARBOR_USER} \
+                        -p ${HARBOR_PASS} \
+                        --plain-http
+                    
+                    # 2. Pull Helm chart từ Harbor về
+                    helm pull oci://${HARBOR_URL}/${HARBOR_PROJ}/website-du-lich \
+                        --version 0.1.${BUILD_NUMBER} \
+                        --plain-http \
+                        --untar \
+                        --untardir ./deploy
+                    
+                    # 3. Deploy lên Kubernetes
+                    helm upgrade --install ${HELM_RELEASE} ./deploy/website-du-lich \
                         --namespace ${K8S_NAMESPACE} \
-                        --set image.tag=${BUILD_NUMBER} \
+                        --create-namespace \
                         --set image.repository=${DOCKER_IMAGE} \
-                        --wait --timeout 300s
+                        --set image.tag=${BUILD_NUMBER} \
+                        --set image.pullPolicy=Always \
+                        --wait \
+                        --timeout 300s \
+                        --atomic
+                    
+                    # 4. Kiểm tra trạng thái deployment
+                    kubectl get pods -n ${K8S_NAMESPACE} -l app=${HELM_RELEASE}
+                    kubectl get svc -n ${K8S_NAMESPACE} -l app=${HELM_RELEASE}
                 '''
+                
                 echo "✅ Deploy thanh cong ban ${BUILD_NUMBER}!"
             }
         }

@@ -1,16 +1,25 @@
 replicaCount: 1
-
 # Cau hinh Docker Image
 image:
-  repository: harbor.local/laravel/website-du-lich # Thay bằng URL Harbor thực tế của bạn
-  pullPolicy: IfNotPresent
+  repository: 192.168.92.128:8088/laravel/website-du-lich # Thay bằng URL Harbor thực tế của bạn
+  pullPolicy: Always
   tag: "latest"
-
 # Cau hinh Service (Network) 
 service:
   type: NodePort
   port: 80
   nodePort: 30080 # Port để truy cập từ bên ngoài vào
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: website-du-lich.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
 
 # Tài nguyên CPU/RAM cho Pod
 resources:
@@ -19,8 +28,7 @@ resources:
     memory: 512Mi
   requests:
     cpu: 100m
-    memory: 256Mi
- 
+    memory: 256Mi 
 # Cau hinh configmap
 config:
   appname: "website_Du_Lich"
@@ -37,7 +45,5 @@ config:
 # Cau hinh Secret (Password)
 secret:
   appKey: "base64:ThayBangAppKeyThucTeCuaBan" 
-
   dbUser: "root"
-  
   dbPassword: "root"

@@ -106,4 +106,4 @@ spec:
   - port: 3306
     targetPort: 3306
     name: mysql
-  clusterIP: None                   # ← Headless service cho StatefulSet
+    

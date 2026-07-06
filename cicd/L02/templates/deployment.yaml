@@ -4,16 +4,13 @@ metadata:
   name: {{ .Release.Name }}-deployment
   labels:
     app: laravel-website
-
 spec:
   # 1. REPLICAS: Số lượng Pod (Container) bạn muốn chạy song song
   replicas: {{ .Values.replicaCount }}
-  
   # 2. SELECTOR: Bộ lọc để Kubernetes tìm các Pod thuộc về Deployment này
   selector:
     matchLabels:
       app: laravel-website  # ⚠️ QUAN TRỌNG: Phải khớp 100% với label ở dưới
-  
   # 3. TEMPLATE: Khuôn mẫu để Kubernetes tạo ra Pod mới
   template:
     metadata:
@@ -24,12 +21,10 @@ spec:
         - name: laravel-container
           # Lấy thông tin Docker Image từ file values.yaml
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          
+          imagePullPolicy: {{ .Values.image.pullPolicy }} 
           # Mở port 80 bên trong container (Nơi Nginx đang lắng nghe)
           ports:
-            - containerPort: 80
-          
+            - containerPort: 80      
           # Bơm TOÀN BỘ biến môi trường từ ConfigMap và Secret vào Laravel
           envFrom:
             - configMapRef:
@@ -40,3 +35,59 @@ spec:
           # Cấu hình giới hạn tài nguyên (CPU/RAM) lấy từ values.yaml
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+---
+#==========================================
+# SQL 
+#==========================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: mysql
+spec:
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "root"
+            - name: MYSQL_DATABASE
+              value: "travella"
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  selector:
+    app: mysql
+  ports:
+    - port: 3306
+      targetPort: 3306

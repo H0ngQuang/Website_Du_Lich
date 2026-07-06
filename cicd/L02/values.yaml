@@ -26,11 +26,11 @@ ingress:
 # Tài nguyên CPU/RAM cho Pod
 resources:
   limits:
-    cpu: 500m
-    memory: 512Mi
+    cpu: 300m
+    memory: 385Mi
   requests:
-    cpu: 100m
-    memory: 256Mi
+    cpu: 50m
+    memory: 128Mi
 
 # Cau hinh configmap (ĐÃ XÓA SẠCH KHOẢNG TRẮNG THỪA)
 config:

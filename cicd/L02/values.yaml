@@ -37,7 +37,7 @@ config:
   appname: "website_Du_Lich"
   appEnv: "local"
   appDebug: "true"
-  appUrl: "http://localhost"
+  appUrl: "http://192.168.92.128:30080"
   dbConnection: "mysql"
   dbHost: "10.99.119.181"
   dbPort: "3306"

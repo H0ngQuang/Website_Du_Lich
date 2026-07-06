@@ -1,43 +1,47 @@
-FROM php:8.1-apache
+FROM php:8.3-fpm
 
+# Cài đặt extensions
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
-    libicu-dev \
     zip \
     unzip \
-    nodejs \
-    npm \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    nginx \
+    supervisor \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-RUN a2enmod rewrite
-
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
-
+# Cài Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Set working directory
 WORKDIR /var/www/html
+
+# Copy source code
 COPY . .
 
-RUN composer install --no-interaction --optimize-autoloader
+# Cài dependencies
+RUN composer install --no-dev --optimize-autoloader
 
-RUN npm install
-RUN npm run build
+# Copy entrypoint script
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# Copy Nginx config
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+
+# Copy supervisor config
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+# Expose port
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

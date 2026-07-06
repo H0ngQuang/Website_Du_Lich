@@ -24,7 +24,12 @@ class AppServiceProvider extends ServiceProvider
      * @return void
      */
     public function boot()
-    {
+    {   
+        // 👇 FORCE URL TỪ ENV VAR - CHUẨN LARAVEL
+        if ($appUrl = env('APP_URL')) {
+            URL::forceRootUrl($appUrl);
+        }
+        
         View::composer('admin.blocks.sidebar', function ($view) {
             $contactModel = new ContactModel();
             $unreadData = $contactModel->countContactsUnread(); // Lấy cả số lượng và danh sách thư

@@ -15,7 +15,19 @@ pipeline {
         HARBOR_USER   = 'admin'
         HARBOR_PASS   = 'Harbor12345' // ️ THAY BẰNG MẬT KHẨU HARBOR THỰC TẾ CỦA BẠN
     }
-
+    options {
+        // Tự động xóa builds cũ
+        buildDiscarder(logRotator(
+            numToKeepStr: '10',           // Giữ 10 builds gần nhất
+            daysToKeepStr: '3',           // Giữ 3 ngày
+            artifactNumToKeepStr: '5',    // Giữ 5 artifacts
+            artifactDaysToKeepStr: '7'
+        ))
+        
+        // Timeout pipeline sau 30 phút
+        timeout(time: 30, unit: 'MINUTES')
+    }
+    
     stages {
         // STAGE 1: Checkout code từ GitHub
         stage('1. Checkout') {

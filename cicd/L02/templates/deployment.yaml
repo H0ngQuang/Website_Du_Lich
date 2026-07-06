@@ -16,7 +16,15 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: k8s-master
-        
+      tolerations:
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+
+      
       containers:
       - name: laravel-container
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

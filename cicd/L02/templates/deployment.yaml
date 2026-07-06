@@ -5,39 +5,31 @@ metadata:
   labels:
     app: laravel-website
 spec:
-  # 1. REPLICAS: Số lượng Pod (Container) bạn muốn chạy song song
   replicas: {{ .Values.replicaCount }}
-  # 2. SELECTOR: Bộ lọc để Kubernetes tìm các Pod thuộc về Deployment này
   selector:
     matchLabels:
-      app: laravel-website  # ⚠️ QUAN TRỌNG: Phải khớp 100% với label ở dưới
-  # 3. TEMPLATE: Khuôn mẫu để Kubernetes tạo ra Pod mới
+      app: laravel-website
   template:
     metadata:
       labels:
-        app: laravel-website # ⚠️ QUAN TRỌNG: Label gán cho Pod (Phải khớp với selector ở trên)
+        app: laravel-website
     spec:
       containers:
-        - name: laravel-container
-          # Lấy thông tin Docker Image từ file values.yaml
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }} 
-          # Mở port 80 bên trong container (Nơi Nginx đang lắng nghe)
-          ports:
-            - containerPort: 80      
-          # Bơm TOÀN BỘ biến môi trường từ ConfigMap và Secret vào Laravel
-          envFrom:
-            - configMapRef:
-                name: {{ .Release.Name }}-configmap
-            - secretRef:
-                name: {{ .Release.Name }}-secret
-          
-          # Cấu hình giới hạn tài nguyên (CPU/RAM) lấy từ values.yaml
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+      - name: laravel-container
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-configmap
+        - secretRef:
+            name: {{ .Release.Name }}-secret
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
 ---
 #==========================================
-# SQL 
+# MySQL PVC
 #==========================================
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -45,17 +37,24 @@ metadata:
   name: mysql-pvc
 spec:
   accessModes:
-    - ReadWriteOnce
+  - ReadWriteOnce
   storageClassName: manual
   resources:
     requests:
-      storage: 1Gi
+      storage: 2Gi
 ---
+#==========================================
+# MySQL StatefulSet
+#==========================================
 apiVersion: apps/v1
-kind: Deployment
-metadata: 
+kind: StatefulSet
+metadata:
   name: mysql
+  labels:
+    app: mysql
 spec:
+  serviceName: mysql-service
+  replicas: 1
   selector:
     matchLabels:
       app: mysql
@@ -67,30 +66,38 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: k8s-master
       containers:
-        - name: mysql
-          image: mysql:8.0
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: "root"
-            - name: MYSQL_DATABASE
-              value: "travella"
-          ports:
-            - containerPort: 3306
-          volumeMounts:
-            - name: mysql-storage
-              mountPath: /var/lib/mysql
-      volumes:
+      - name: mysql
+        image: mysql:8.0
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{ .Values.secret.dbPassword | quote }}
+        - name: MYSQL_DATABASE
+          value: {{ .Values.config.dbDatabase | quote }}
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
         - name: mysql-storage
-          persistentVolumeClaim:
-            claimName: mysql-pvc
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
 ---
+#==========================================
+# MySQL Service (Headless cho StatefulSet)
+#==========================================
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql-service
+  labels:
+    app: mysql
 spec:
   selector:
     app: mysql
   ports:
-    - port: 3306
-      targetPort: 3306
+  - port: 3306
+    targetPort: 3306
+    name: mysql
+  clusterIP: None

@@ -44,17 +44,13 @@ spec:
       storage: 2Gi
 ---
 #==========================================
-# MySQL StatefulSet
+# MySQL Deployment
 #==========================================
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: mysql
-  labels:
-    app: mysql
 spec:
-  serviceName: mysql-service
-  replicas: 1
   selector:
     matchLabels:
       app: mysql
@@ -75,7 +71,6 @@ spec:
           value: {{ .Values.config.dbDatabase | quote }}
         ports:
         - containerPort: 3306
-          name: mysql
         volumeMounts:
         - name: mysql-storage
           mountPath: /var/lib/mysql
@@ -85,19 +80,15 @@ spec:
           claimName: mysql-pvc
 ---
 #==========================================
-# MySQL Service (Headless cho StatefulSet)
+# MySQL Service
 #==========================================
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql-service
-  labels:
-    app: mysql
 spec:
   selector:
     app: mysql
   ports:
   - port: 3306
     targetPort: 3306
-    name: mysql
-  clusterIP: None

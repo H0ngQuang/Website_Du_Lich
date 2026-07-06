@@ -1,17 +1,19 @@
 replicaCount: 1
+
 # Cau hinh Docker Image
 image:
-  repository: 192.168.92.128:8088/laravel/website-du-lich # Thay bằng URL Harbor thực tế của bạn
+  repository: 192.168.92.128:8088/laravel/website-du-lich
   pullPolicy: Always
   tag: "latest"
-# Cau hinh Service (Network) 
+
+# Cau hinh Service (Network)
 service:
   type: NodePort
   port: 80
-  nodePort: 30080 # Port để truy cập từ bên ngoài vào
+  nodePort: 30080
 
 ingress:
-  enabled: true
+  enabled: false
   className: "nginx"
   annotations: {}
   hosts:
@@ -28,22 +30,23 @@ resources:
     memory: 512Mi
   requests:
     cpu: 100m
-    memory: 256Mi 
-# Cau hinh configmap
+    memory: 256Mi
+
+# Cau hinh configmap (ĐÃ XÓA SẠCH KHOẢNG TRẮNG THỪA)
 config:
   appname: "website_Du_Lich"
-  appEnv: "production"
-  appDebug: "false"
+  appEnv: "local"
+  appDebug: "true"
   appUrl: "http://localhost"
   dbConnection: "mysql"
-  dbHost: "mysql-service" # Tên service MySQL trong Kubernetes
+  dbHost: "mysql-service"
   dbPort: "3306"
   dbDatabase: "travella"
   logChannel: "stderr"
-  logLevel: "debug" 
+  logLevel: "debug"
 
-# Cau hinh Secret (Password)
+# Cau hinh Secret (ĐÃ CẬP NHẬT APP_KEY THẬT)
 secret:
-  appKey: "base64:ThayBangAppKeyThucTeCuaBan" 
+  appKey: "base64:BgMIa/gFgWbECq9mpFiQ7gwYB7aEK2ZiF98RaV6RjHA="
   dbUser: "root"
   dbPassword: "root"

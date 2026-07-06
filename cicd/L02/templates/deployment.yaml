@@ -14,6 +14,9 @@ spec:
       labels:
         app: laravel-website
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-master
+        
       containers:
       - name: laravel-container
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

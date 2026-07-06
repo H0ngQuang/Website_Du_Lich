@@ -39,7 +39,7 @@ config:
   appDebug: "true"
   appUrl: "http://localhost"
   dbConnection: "mysql"
-  dbHost: "mysql-service"
+  dbHost: "10.99.119.181"
   dbPort: "3306"
   dbDatabase: "travella"
   logChannel: "stderr"

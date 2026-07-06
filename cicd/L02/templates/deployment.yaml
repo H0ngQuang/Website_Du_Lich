@@ -29,28 +29,17 @@ spec:
           {{- toYaml .Values.resources | nindent 12 }}
 ---
 #==========================================
-# MySQL PVC
-#==========================================
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pvc
-spec:
-  accessModes:
-  - ReadWriteOnce
-  storageClassName: manual
-  resources:
-    requests:
-      storage: 2Gi
----
-#==========================================
-# MySQL Deployment
+# MySQL StatefulSet (Chuẩn cho Database)
 #==========================================
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: mysql
+  labels:
+    app: mysql
 spec:
+  serviceName: mysql-service
+  replicas: 1
   selector:
     matchLabels:
       app: mysql
@@ -61,6 +50,10 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/hostname: k8s-master
+      tolerations:                    # ← Fix lỗi taint master node
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
       containers:
       - name: mysql
         image: mysql:8.0
@@ -71,24 +64,35 @@ spec:
           value: {{ .Values.config.dbDatabase | quote }}
         ports:
         - containerPort: 3306
+          name: mysql
         volumeMounts:
-        - name: mysql-storage
+        - name: mysql-data
           mountPath: /var/lib/mysql
-      volumes:
-      - name: mysql-storage
-        persistentVolumeClaim:
-          claimName: mysql-pvc
+  volumeClaimTemplates:             # ← StatefulSet tự tạo PVC cho mỗi pod
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: manual
+      resources:
+        requests:
+          storage: 2Gi
 ---
 #==========================================
-# MySQL Service
+# MySQL Service (Headless cho StatefulSet)
 #==========================================
 apiVersion: v1
 kind: Service
 metadata:
   name: mysql-service
+  labels:
+    app: mysql
 spec:
   selector:
     app: mysql
   ports:
   - port: 3306
     targetPort: 3306
+    name: mysql
+  clusterIP: None                   # ← Headless service cho StatefulSet

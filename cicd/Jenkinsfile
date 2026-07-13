@@ -37,6 +37,32 @@ pipeline {
                 sh 'ls -la'
             }
         }
+        stage ('1.2 Security Scan Gitleaks'){
+            steps{
+                script {
+                    def status = sh(
+                        script: """
+                            docker run --rm \
+                                -v \$(pwd):/src \
+                                ${GITLEAKS_IMAGE} detect \
+                                --source=/src \
+                                --config=/src/.gitleaks.toml \
+                                --verbose \
+                                --redact \
+                                --exit-code 1 \
+                                --report-format=json \
+                                --report-path=/src/gitleaks-report.json
+                        """,
+                        returnStatus: true
+                    )
+                    if (status != 0) {
+                        archiveArtifacts artifacts: 'gitleaks-report.json', allowEmptyArchive: true
+                        error("🚨 Gitleaks: Phat hien secret bi lo! Pipeline bi chan.")
+                    }
+                    echo "✅ [Gitleaks] Khong phat hien secret."                
+                }
+            }
+        }
         stage('2. Run Tests') {
             steps {
                 echo '🧪 Dang chay Unit Tests (bo qua Feature Tests)...'

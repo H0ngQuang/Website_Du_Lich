@@ -54,8 +54,7 @@ pipeline {
                                 --redact \
                                 --exit-code 1 \
                                 --report-format=json \
-                                --report-path=/src/gitleaks-report.json \
-                                --no-git
+                                --report-path=/src/gitleaks-report.json
                         """,
                         returnStatus: true
                     )

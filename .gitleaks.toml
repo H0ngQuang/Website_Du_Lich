@@ -1,92 +1,90 @@
-# ===================================================================
-# GITLEAKS CONFIGURATION FOR LARAVEL PROJECT
-# ===================================================================
 title = "Gitleaks Config - Laravel/PHP Project"
 
-# 1. GLOBAL ALLOWLIST - Bo qua cac folder/file khong can quet
-
+# ===================================================================
+# 1. GLOBAL ALLOWLIST - Bỏ qua các thư mục/file không cần quét
+# ===================================================================
 [allowlist]
     description = "Global allowlist for Laravel project"
-    # Skip for folder/files
+    
+    # Bỏ qua các thư mục (Rất quan trọng để tránh báo nhầm JS/CSS)
     paths = [
-        '''vendor/''',              # Thư viện Composer (rất lớn)
-        '''node_modules/''',        # Thư viện NPM
-        '''.git/''',                # Lịch sử Git
-        '''storage/''',             # Log, cache, session của Laravel
-        '''bootstrap/cache/''',     # Cache của Laravel
-        '''public/storage''',       # Symlink storage
-        '''public/build/''',        # Build assets của Vite
-        '''tests/''',               # Thư mục test (thường chứa dummy data)
-        '''database/seeders/''',    # Seeder có thể chứa dummy password
-        '''database/factories/'''   # Factory có thể chứa dummy data
+        '''vendor/''',                  # Thư viện Composer
+        '''node_modules/''',            # Thư viện NPM
+        '''.git/''',                    # Lịch sử Git
+        '''storage/''',                 # Log, cache của Laravel
+        '''bootstrap/cache/''',         # Cache của Laravel
+        '''public/storage''',           # Symlink storage
+        '''public/build/''',            # Build assets của Vite
+        '''tests/''',                   # Thư mục test
+        '''database/seeders/''',        
+        '''database/factories/''',      
+        # 🛠️ THÊM MỚI: Bỏ qua các thư mục chứa thư viện frontend đã nén
+        '''(.*?)/vendors/''',           # Bỏ qua tất cả thư mục vendors (Bootstrap, jQuery...)
+        '''(.*?)/dist/''',              # Bỏ qua tất cả thư mục dist
+        '''(.*?)/assets/'''             # Bỏ qua thư mục assets tĩnh
     ]
-
+    
     # Bỏ qua các file cụ thể
     files = [
-        '''(.*?)(\.env\.example)$''',      # File mẫu, chỉ chứa placeholder
-        '''(.*?)(\.env\.testing)$''',      # File env cho test
-        '''(.*?)\.md$''',                  # File markdown (README, docs)
-        '''(.*?)\.lock$''',                # File lock (composer.lock, package-lock.json)
-        '''(.*?)\.log$''',                 # File log
-        '''(.*?)\.svg$''',                 # File ảnh vector
-        '''(.*?)\.css$''',                 # File CSS
-        '''(.*?)\.min\.js$'''              # File JS đã minify
+        '''(.*?)(\.env\.example)$''',      
+        '''(.*?)(\.env\.testing)$''',      
+        '''(.*?)\.md$''',                  
+        '''(.*?)\.lock$''',                
+        '''(.*?)\.log$''',                 
+        '''(.*?)\.svg$''',                 
+        '''(.*?)\.css$''',                 
+        # 🛠️ THÊM MỚI: Bỏ qua các file đã minify và map
+        '''(.*?)\.min\.js$''',          # Bỏ qua JS đã minify (Fix lỗi bootstrap.min.js)
+        '''(.*?)\.min\.css$''',         # Bỏ qua CSS đã minify
+        '''(.*?)\.map$''',              # Bỏ qua source maps
+        '''(.*?)\.woff2?$''',           # Bỏ qua font files
+        '''(.*?)\.ttf$'''               
     ]
 
+    # Bỏ qua các chuỗi dummy
+    regexes = [
+        '''your_.*_here''',
+        '''changeme''',
+        '''placeholder''',
+        '''xxxx''',
+        '''sk_test_''',
+        '''pk_test_''',
+        '''EXAMPLE'''
+    ]
+
+# ===================================================================
 # 2. CUSTOM RULES - Luật riêng cho dự án Laravel
 # ===================================================================
 
-# Rule 1: Phát hiện JWT Secret (Rất quan trọng với Laravel API)
+# Rule 1: Phát hiện JWT Secret
 [[rules]]
     id = "laravel-jwt-secret"
     description = "Detect Laravel JWT Secret Key"
     regex = '''(?i)JWT_SECRET\s*=\s*["']?([a-zA-Z0-9_\-]{32,})["']?'''
-    tags = ["laravel", "jwt", "secret", "authentication"]
+    tags = ["laravel", "jwt", "secret"]
     severity = "CRITICAL"
-    
-    [rules.allowlist]
-        description = "Ignore dummy JWT secrets"
-        regexes = [
-            '''your-jwt-secret-key''',
-            '''changeme''',
-            '''xxx''',
-            '''base64:'''
-        ]
 
-# Rule 2: Phát hiện Database Connection String (DSN)
+# Rule 2: Phát hiện Database Connection String
 [[rules]]
     id = "database-connection-string"
-    description = "Detect Database Connection String (MySQL/PostgreSQL/MongoDB)"
+    description = "Detect Database Connection String"
     regex = '''(?i)(mysql|pgsql|postgres|mongodb):\/\/[^\s"']+:[^\s"']+@[^\s"']+'''
-    tags = ["database", "dsn", "mysql", "postgres", "mongodb"]
+    tags = ["database", "dsn"]
     severity = "CRITICAL"
-    
     [rules.allowlist]
-        description = "Ignore local or example database connections"
-        regexes = [
-            '''localhost''',
-            '''127\.0\.0\.1''',
-            '''example\.com''',
-            '''db\.example\.com'''
-        ]
+        regexes = ['''localhost''', '''127\.0\.0\.1''']
 
 # Rule 3: Phát hiện Generic API Key / Token / Password
 [[rules]]
     id = "generic-api-key-pattern"
     description = "Detect Generic API Key/Token/Secret assignment"
     regex = '''(?i)[a-zA-Z0-9_]*(key|token|secret|password|credential)[a-zA-Z0-9_]*\s*[:=]\s*['"]([a-zA-Z0-9_\-]{20,})['"]'''
-    tags = ["generic", "api", "key", "token", "password"]
+    tags = ["generic", "api", "key"]
     severity = "HIGH"
-    
     [rules.allowlist]
-        description = "Ignore placeholder values"
         regexes = [
             '''your_.*_here''',
             '''changeme''',
             '''placeholder''',
-            '''xxxx''',
-            '''sk_test_''',           # Stripe test key
-            '''pk_test_''',           # Stripe public test key
-            '''EXAMPLE''',
             '''password@localhost'''
         ]

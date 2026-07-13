@@ -135,10 +135,10 @@ class BookingController extends Controller
             $amount = 10000;
 
             // Các thông tin cần thiết của MoMo
-            $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
-            $partnerCode = "REMOVED_PARTNER_CODE"; // mã partner của bạn
-            $accessKey = "REMOVED_ACCESS_KEY"; // access key của bạn
-            $secretKey = "REMOVED_SECRET_KEY"; // secret key của bạn
+            $endpoint = config('services.momo.endpoint');
+            $partnerCode = config('services.momo.partner_code');
+            $accessKey = config('services.momo.access_key');
+            $secretKey = config('services.momo.secret_key');
 
             $orderInfo = "Thanh toán đơn hàng";
             $requestId = time();

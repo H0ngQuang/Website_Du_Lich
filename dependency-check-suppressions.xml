@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <!-- 
+        File này dùng để bỏ qua các CVE đã được đánh giá là không ảnh hưởng
+        hoặc là false positive.
+        
+        Cách sử dụng:
+        1. Xem báo cáo OWASP, tìm CVE muốn bỏ qua
+        2. Thêm vào file này với lý do rõ ràng
+        3. Commit lên Git
+    -->
+    
+    <!-- Ví dụ: Bỏ qua CVE không ảnh hưởng đến môi trường PHP -->
+    <!--
+    <suppress>
+        <notes><![CDATA[
+            CVE này chỉ ảnh hưởng đến môi trường .NET/Java, không ảnh hưởng đến PHP/Laravel.
+            Đánh giá ngày: 2026-07-13
+            Người đánh giá: [Tên của bạn]
+        ]]></notes>
+        <cve>CVE-2021-XXXXX</cve>
+    </suppress>
+    -->
+    
+    <!-- Ví dụ: Bỏ qua CVE đã có workaround -->
+    <!--
+    <suppress>
+        <notes><![CDATA[
+            CVE-2022-YYYYY đã được mitigate bằng cách disable function X.
+            Không thể upgrade library do dependency conflict.
+            Đánh giá ngày: 2026-07-13
+        ]]></notes>
+        <cve>CVE-2022-YYYYY</cve>
+    </suppress>
+    -->
+</suppressions>

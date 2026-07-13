@@ -14,6 +14,9 @@ pipeline {
         // Thông tin đăng nhập Harbor (Sửa mật khẩu cho đúng với máy bạn)
         HARBOR_USER   = 'admin'
         HARBOR_PASS   = 'Harbor12345' // ️ THAY BẰNG MẬT KHẨU HARBOR THỰC TẾ CỦA BẠN
+    
+        // Cấu hình gitleaks
+        GITLEAKS_IMAGE = 'zricethezav/gitleaks:v8.18.4' 
     }
     options {
         // Tự động xóa builds cũ

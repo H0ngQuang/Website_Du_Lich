@@ -81,7 +81,7 @@ pipeline {
                             --failOnCVSS 9.0
                             --enableRetired
                             --nvdValidForHours 24
-                            --suppression dependency-check-suppressions.xml
+                            --nvdApiKey 342bf470-b620-4fb9-8f16-2163a307ea4d                       
                         ''',
                         odcInstallation: 'DP-Check'
                     

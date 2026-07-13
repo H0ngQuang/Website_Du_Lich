@@ -1,0 +1,92 @@
+# ===================================================================
+# GITLEAKS CONFIGURATION FOR LARAVEL PROJECT
+# ===================================================================
+title = "Gitleaks Config - Laravel/PHP Project"
+
+# 1. GLOBAL ALLOWLIST - Bo qua cac folder/file khong can quet
+
+[allowlist]
+    description = "Global allowlist for Laravel project"
+    # Skip for folder/files
+    paths = [
+        '''vendor/''',              # Thư viện Composer (rất lớn)
+        '''node_modules/''',        # Thư viện NPM
+        '''.git/''',                # Lịch sử Git
+        '''storage/''',             # Log, cache, session của Laravel
+        '''bootstrap/cache/''',     # Cache của Laravel
+        '''public/storage''',       # Symlink storage
+        '''public/build/''',        # Build assets của Vite
+        '''tests/''',               # Thư mục test (thường chứa dummy data)
+        '''database/seeders/''',    # Seeder có thể chứa dummy password
+        '''database/factories/'''   # Factory có thể chứa dummy data
+    ]
+
+    # Bỏ qua các file cụ thể
+    files = [
+        '''(.*?)(\.env\.example)$''',      # File mẫu, chỉ chứa placeholder
+        '''(.*?)(\.env\.testing)$''',      # File env cho test
+        '''(.*?)\.md$''',                  # File markdown (README, docs)
+        '''(.*?)\.lock$''',                # File lock (composer.lock, package-lock.json)
+        '''(.*?)\.log$''',                 # File log
+        '''(.*?)\.svg$''',                 # File ảnh vector
+        '''(.*?)\.css$''',                 # File CSS
+        '''(.*?)\.min\.js$'''              # File JS đã minify
+    ]
+
+# 2. CUSTOM RULES - Luật riêng cho dự án Laravel
+# ===================================================================
+
+# Rule 1: Phát hiện JWT Secret (Rất quan trọng với Laravel API)
+[[rules]]
+    id = "laravel-jwt-secret"
+    description = "Detect Laravel JWT Secret Key"
+    regex = '''(?i)JWT_SECRET\s*=\s*["']?([a-zA-Z0-9_\-]{32,})["']?'''
+    tags = ["laravel", "jwt", "secret", "authentication"]
+    severity = "CRITICAL"
+    
+    [rules.allowlist]
+        description = "Ignore dummy JWT secrets"
+        regexes = [
+            '''your-jwt-secret-key''',
+            '''changeme''',
+            '''xxx''',
+            '''base64:'''
+        ]
+
+# Rule 2: Phát hiện Database Connection String (DSN)
+[[rules]]
+    id = "database-connection-string"
+    description = "Detect Database Connection String (MySQL/PostgreSQL/MongoDB)"
+    regex = '''(?i)(mysql|pgsql|postgres|mongodb):\/\/[^\s"']+:[^\s"']+@[^\s"']+'''
+    tags = ["database", "dsn", "mysql", "postgres", "mongodb"]
+    severity = "CRITICAL"
+    
+    [rules.allowlist]
+        description = "Ignore local or example database connections"
+        regexes = [
+            '''localhost''',
+            '''127\.0\.0\.1''',
+            '''example\.com''',
+            '''db\.example\.com'''
+        ]
+
+# Rule 3: Phát hiện Generic API Key / Token / Password
+[[rules]]
+    id = "generic-api-key-pattern"
+    description = "Detect Generic API Key/Token/Secret assignment"
+    regex = '''(?i)[a-zA-Z0-9_]*(key|token|secret|password|credential)[a-zA-Z0-9_]*\s*[:=]\s*['"]([a-zA-Z0-9_\-]{20,})['"]'''
+    tags = ["generic", "api", "key", "token", "password"]
+    severity = "HIGH"
+    
+    [rules.allowlist]
+        description = "Ignore placeholder values"
+        regexes = [
+            '''your_.*_here''',
+            '''changeme''',
+            '''placeholder''',
+            '''xxxx''',
+            '''sk_test_''',           # Stripe test key
+            '''pk_test_''',           # Stripe public test key
+            '''EXAMPLE''',
+            '''password@localhost'''
+        ]

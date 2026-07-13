@@ -68,39 +68,33 @@ pipeline {
         }
         stage('1.3 Security Scan - Dependencies (OWASP)') {
             steps {
-                echo '🔍 Stage 1.3: Dang quet lo hong trong thu vien (composer.lock)...'
-                
+                echo '🔍 Stage 1.3: Dang quet lo hong trong thu vien...'
                 script {
-                    // Chạy OWASP Dependency-Check qua plugin
-                    dependencyCheck \
-                        additionalArguments: '''
-                            --scan composer.lock
-                            --format HTML
-                            --format JSON
-                            --project "Website-Du-Lich-Laravel"
-                            --failOnCVSS 9.0
-                            --enableRetired
-                            --nvdValidForHours 24
-                            --nvdApiKey 342bf470-b620-4fb9-8f16-2163a307ea4d                       
-                        ''',
-                        odcInstallation: 'DP-Check'
-                    
-                    // Publish báo cáo HTML lên Jenkins UI
-                    publishHTML(target: [
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'dependency-check-report',
-                        reportFiles: 'dependency-check-report.html',
-                        reportName: 'OWASP Dependency-Check Report'
-                    ])
-                    
-                    // Archive file JSON để xem chi tiết
-                    archiveArtifacts artifacts: 'dependency-check-report/dependency-check-report.json', 
-                                    allowEmptyArchive: true
+                    // Lấy secret từ Jenkins Credentials
+                    withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
+                        dependencyCheck 
+                            additionalArguments: """
+                                --scan composer.lock 
+                                --exclude '**/vendor/**' 
+                                --exclude '**/node_modules/**'
+                                --format HTML 
+                                --format JSON 
+                                --project "Website-Du-Lich" 
+                                --failOnCVSS 9.0 
+                                --nvdApiKey ${NVD_API_KEY}
+                            """, 
+                            odcInstallation: 'DP-Check'
+                        
+                        publishHTML(target: [
+                            allowMissing: true,
+                            alwaysLinkToLastBuild: true,
+                            keepAll: true,
+                            reportDir: 'dependency-check-report',
+                            reportFiles: 'dependency-check-report.html',
+                            reportName: 'OWASP Dependency-Check Report'
+                        ])
+                    }
                 }
-                
-                echo '✅ [OWASP] Quet thu vien hoan tat!'
             }
         }
         stage('2. Run Tests') {

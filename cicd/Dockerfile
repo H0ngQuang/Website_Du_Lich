@@ -1,30 +1,57 @@
-# Khai báo image de build tu do - NÂNG CẤP LÊN PHP 8.3
-FROM php:8.3-fpm  
+# ==========================================
+# STAGE 1: Builder (Dùng để cài đặt và build)
+# ==========================================
+FROM php:8.3-cli AS builder
 
-# Cài đặt Dependencies
-# Cập nhật danh sách package của Ubuntu
-# Tải và giải nén các extension , nginx , process manager để chạy cả nginx và php-fpm trong 1 contaienr 
-# Cài các extension trong docker
-# dọn dẹp để giảm kích thước
-
+# Cài đặt các gói cần thiết để build extension PHP
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip libpng-dev libonig-dev libxml2-dev libzip-dev nginx supervisor \
+    git curl zip unzip libpng-dev libonig-dev libxml2-dev libzip-dev \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
-    && apt-get clean && rm -rf /var/lib/apt/lists/* 
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Cài Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer    
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Đường dẫn chuẩn cho web apps
+# Cài Node.js 18 để build Vite (Frontend)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /var/www/html
 
-#Copy code toàn bộ vào image
+# Copy file cấu hình dependency trước để tận dụng Docker Cache
+COPY composer.json composer.lock package.json package-lock.json ./
+
+# Cài đặt PHP dependencies và Node dependencies, sau đó build frontend
+RUN composer install --no-interaction --no-dev --optimize-autoloader \
+    && npm ci \
+    && npm run build
+
+# Copy toàn bộ source code (những file bị ignore trong .dockerignore sẽ không được copy)
 COPY . .
 
-# Cài đặt Laravel Dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# ==========================================
+# STAGE 2: Production Runtime (Nhẹ & Bảo mật)
+# ==========================================
+FROM php:8.3-fpm AS production
 
-# Phân quyền cho Laravel 
+# Chỉ cài đặt runtime cần thiết (KHÔNG có composer, nodejs, git...)
+RUN apt-get update && apt-get install -y \
+    nginx supervisor \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /var/www/html
+
+# Copy chỉ những thứ CẦN THIẾT từ stage builder sang
+COPY --from=builder /var/www/html/vendor ./vendor
+COPY --from=builder /var/www/html/public/build ./public/build
+COPY --from=builder /var/www/html/bootstrap/cache ./bootstrap/cache
+COPY --from=builder /var/www/html/storage ./storage
+
+# Copy source code chính (app, config, routes, views...)
+COPY --chown=www-data:www-data . .
+
+# Phân quyền cho Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
@@ -51,25 +78,10 @@ RUN printf '[supervisord]\n\
 
 EXPOSE 80
 
-# Copy entrypoint script
+# Copy entrypoint script (nếu bạn có file này trong thư mục cicd/docker/)
+# Nếu không có, hãy xóa 2 dòng dưới đi hoặc tạo file entrypoint.sh tương ứng
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Set entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
-
-# 1. Container khởi động
-#       ↓
-# 2. Supervisor chạy (CMD)
-#       ↓
-# 3. Supervisor khởi động Nginx (port 80) + PHP-FPM (port 9000)
-#       ↓
-# 4. User truy cập http://localhost:80
-#       ↓
-# 5. Nginx nhận request → Nếu là .php → chuyển đến PHP-FPM
-#       ↓
-# 6. PHP-FPM xử lý code Laravel → Trả về HTML
-#       ↓
-# 7. Nginx gửi response về user

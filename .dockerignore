@@ -28,7 +28,7 @@ Thumbs.db
 .github/
 .gitlab-ci.yml
 Jenkinsfile
-docker/
+
 
 # Tests & Docs
 tests/

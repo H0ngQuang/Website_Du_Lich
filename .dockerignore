@@ -1,57 +1,36 @@
-# ==========================================
-# .dockerignore cho Laravel + Kubernetes
-# ==========================================
-
-# 1. Bảo mật & Môi trường (BẮT BUỘC)
-.env
-.env.*
-!.env.example
-
-# 2. Git & Version Control
-.git/
-.gitattributes
-.gitignore
-
-# 3. Dependencies (Để Dockerfile tự chạy composer install sạch sẽ)
+# Dependencies
 vendor/
 node_modules/
 
-# 4. IDE & Editor
+# Build artifacts
+public/build/
+public/hot/
+public/mix-manifest.json
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+
+# IDE & OS
 .idea/
 .vscode/
 *.swp
 *.swo
-*~
 .DS_Store
+Thumbs.db
 
-# 5. Logs, Cache & Storage (Giữ cấu trúc thư mục, không copy dữ liệu rác)
-storage/logs/*.log
-storage/framework/cache/data/*
-storage/framework/sessions/*
-storage/framework/views/*
-storage/*.key
-
-# 6. CI/CD, Testing & Security (Không cần trong Production Image)
-.phpunit.result.cache
-coverage/
-cicd/
+# Git & CI/CD
+.git/
+.github/
+.gitlab-ci.yml
 Jenkinsfile
-.gitleaks.toml
-gitleaks-report.json
-phpunit.xml
-phpunit.xml.dist
-
-# 7. Docker, Kubernetes & Helm
-Dockerfile
-docker-compose.yml
 docker/
-Chart.yaml
-values.yaml
-.helmignore
-*.tgz
 
-# 8. Frontend Build Tools (Jenkins đã build sẵn, chỉ cần giữ lại public/build)
-tailwind.config.js
-vite.config.js
-package.json
-package-lock.json
+# Tests & Docs
+tests/
+phpunit.xml
+README.md

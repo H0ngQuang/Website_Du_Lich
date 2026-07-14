@@ -66,60 +66,46 @@ pipeline {
                 }
             }
         }
-        stage('2. Run Tests') {
+        stage('2. Test & Build Assets') {
             steps {
-                echo '🧪 Dang chay Unit Tests (bo qua Feature Tests)...'
+                echo '🧪🎨 Đang chạy Unit Test và Build Frontend...'
                 sh '''
-                    docker run --rm \
-                        -v $(pwd):/app \
-                        -w /app \
-                        php:8.3-cli \
-                        sh -c "
-                            apt-get update && apt-get install -y libzip-dev libpng-dev > /dev/null 2>&1 && \
-                            docker-php-ext-install zip gd pdo_mysql > /dev/null 2>&1 && \
-                            curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
-                            composer install --no-interaction && \
-                            cp .env.example .env && \
-                            php artisan key:generate && \
-                            php artisan test --testsuite=Unit
-                        "
+                    # 1. Cài đặt PHP Deps và chạy Test
+                    # Lưu ý: -u $(id -u):$(id -g) để file tạo ra thuộc quyền user Jenkins, không phải root
+                    docker run --rm -u $(id -u):$(id -g) -v $(pwd):/app -w /app php:8.3-cli sh -c "
+                        apt-get update > /dev/null && apt-get install -y libzip-dev libpng-dev > /dev/null && \
+                        docker-php-ext-install zip gd pdo_mysql > /dev/null && \
+                        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+                        composer install --no-interaction && \
+                        cp .env.example .env && php artisan key:generate && \
+                        php artisan test --testsuite=Unit
+                    "
+
+                    # 2. Build Frontend (Vite)
+                    docker run --rm -u $(id -u):$(id -g) -v $(pwd):/app -w /app node:18-alpine sh -c "
+                        npm ci && npm run build
+                    "
+                    
+                    echo '✅ Hoàn tất Test và Build Assets!'
                 '''
-                echo '✅ Unit Tests hoan tat!'
-            }
-        }
-        // ️ THÊM STAGE BUILD FRONTEND
-        stage('3. Build Frontend (Vite)') {
-            steps {
-                echo '🎨 Dang build frontend assets (CSS/JS)...'
-                sh '''
-                    docker run --rm \
-                        -v $(pwd):/app \
-                        -w /app \
-                        node:18-alpine \
-                        sh -c "
-                            npm ci && \
-                            npm run build
-                        "
-                '''
-                echo '✅ Frontend da duoc build thanh cong!'
             }
         }
         // STAGE : Build Docker Image
-        stage('4.Build Docker Image') {
+        stage('3. Build Docker Image') {
             steps {
-                echo ' Stage 2: Dang build Docker image...'
+                echo '🐳 Đang build Docker image (kế thừa assets đã build)...'
                 sh '''
                     docker build \
+                        --cache-from ${DOCKER_IMAGE}:latest \
                         -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
                         -t ${DOCKER_IMAGE}:latest \
                         -f cicd/Dockerfile .
                 '''
-                echo "✅ Da build image: ${DOCKER_IMAGE}:${BUILD_NUMBER}"
             }
         }
 
         // STAGE : Push Image lên Harbor Registry
-        stage('5. Push to Harbor') {
+        stage('4. Push to Harbor') {
             steps {
                 echo ' Stage 3: Dang push image len Harbor...'
                 
@@ -134,7 +120,7 @@ pipeline {
             }
         }
 
-        stage('6. Push to Helm') {
+        stage('5. Push to Helm') {
             steps {
                 echo '📦 Stage 6: Dang push Helm chart len Harbor...'
                 sh '''
@@ -161,7 +147,7 @@ pipeline {
             }
         }
 
-        stage('7. Deploy to K8s') {
+        stage('6. Deploy to K8s') {
             steps {
                 echo '☸️ Stage 7: Dang deploy len Kubernetes...'
                 

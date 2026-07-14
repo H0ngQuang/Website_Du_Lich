@@ -70,19 +70,26 @@ pipeline {
             steps {
                 echo '🧪🎨 Đang chạy Unit Test và Build Frontend...'
                 sh '''
-                    # 1. Cài đặt PHP Deps và chạy Test
-                    # Lưu ý: -u $(id -u):$(id -g) để file tạo ra thuộc quyền user Jenkins, không phải root
-                    docker run --rm -u $(id -u):$(id -g) -v $(pwd):/app -w /app php:8.3-cli sh -c "
-                        apt-get update > /dev/null && apt-get install -y libzip-dev libpng-dev > /dev/null && \
+                    # Lấy UID và GID của user Jenkins hiện tại trên host
+                    HOST_UID=$(id -u)
+                    HOST_GID=$(id -g)
+
+                    # 1. PHP: Chạy mặc định (root) để apt-get hoạt động, nhưng chown lại thư mục kết quả ở cuối
+                    docker run --rm -v $(pwd):/app -w /app php:8.3-cli sh -c "
+                        apt-get update > /dev/null && \
+                        apt-get install -y libzip-dev libpng-dev > /dev/null && \
                         docker-php-ext-install zip gd pdo_mysql > /dev/null && \
                         curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
                         composer install --no-interaction && \
-                        cp .env.example .env && php artisan key:generate && \
-                        php artisan test --testsuite=Unit
+                        cp .env.example .env && \
+                        php artisan key:generate && \
+                        php artisan test --testsuite=Unit && \
+                        # QUAN TRỌNG: Trả lại quyền sở hữu cho user Jenkins để tránh lỗi Permission denied khi dọn dẹp
+                        chown -R ${HOST_UID}:${HOST_GID} /app/vendor /app/.env /app/storage/logs
                     "
 
-                    # 2. Build Frontend (Vite)
-                    docker run --rm -u $(id -u):$(id -g) -v $(pwd):/app -w /app node:18-alpine sh -c "
+                    # 2. Node.js: Chạy đúng user host (npm không cần root, tránh tạo file rác root)
+                    docker run --rm -u ${HOST_UID}:${HOST_GID} -v $(pwd):/app -w /app node:18-alpine sh -c "
                         npm ci && npm run build
                     "
                     
@@ -190,15 +197,19 @@ pipeline {
     }
 
     post {
-        success {
-            echo '🎉 Pipeline hoan thanh thanh cong!'
-        }
-        failure {
-            echo '❌ Pipeline that bai! Hay kiem tra log de debug.'
-        }
         always {
-            echo '🧹 Dang don dep...'
-            sh 'docker system prune -af || true'
+            echo '🧹 Đang dọn dẹp Workspace và Docker để giải phóng bộ nhớ máy chủ...'
+            sh '''
+                # 1. Xóa các thư mục nặng đã được đóng gói vào image (giờ đã đúng quyền, xóa được ngay)
+                rm -rf vendor node_modules public/build storage/logs/*.log
+                
+                # 2. Dọn dẹp Docker: Xóa container dừng, dangling images, và build cache cũ hơn 24h
+                docker system prune -f --filter "until=24h" || true
+                
+                echo '✅ Dọn dẹp hoàn tất.'
+            '''
         }
+        success { echo '🎉 Pipeline hoàn thành thành công!' }
+        failure { echo '❌ Pipeline thất bại! Hãy kiểm tra log để debug.' }
     }
 }

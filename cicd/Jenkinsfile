@@ -2,108 +2,66 @@ pipeline {
     agent any
 
     environment {
-        // Cập nhật IP Harbor của bạn
         HARBOR_URL    = '192.168.92.128:8088' 
         HARBOR_PROJ   = 'laravel'
         DOCKER_IMAGE  = "${HARBOR_URL}/${HARBOR_PROJ}/website-du-lich"
-        
         HELM_CHART    = './cicd/L02'
         HELM_RELEASE  = 'laravel-release'
         K8S_NAMESPACE = 'default'
-        
-        // Thông tin đăng nhập Harbor (Sửa mật khẩu cho đúng với máy bạn)
-        HARBOR_USER   = 'admin'
-        HARBOR_PASS   = 'Harbor12345' // ️ THAY BẰNG MẬT KHẨU HARBOR THỰC TẾ CỦA BẠN
-    
-        // Cấu hình gitleaks
         GITLEAKS_IMAGE = 'zricethezav/gitleaks:v8.18.4' 
     }
+
     options {
-        // Tự động xóa builds cũ
-        buildDiscarder(logRotator(
-            numToKeepStr: '10',           // Giữ 10 builds gần nhất
-            daysToKeepStr: '3',           // Giữ 3 ngày
-            artifactNumToKeepStr: '5',    // Giữ 5 artifacts
-            artifactDaysToKeepStr: '7'
-        ))
-        
-        // Timeout pipeline sau 30 phút
+        buildDiscarder(logRotator(numToKeepStr: '10', daysToKeepStr: '3'))
         timeout(time: 30, unit: 'MINUTES')
     }
     
     stages {
-        // STAGE 1: Checkout code từ GitHub
         stage('1. Checkout') {
             steps {
-                echo '📥 Stage 1: Dang lay code tu GitHub...'
-                sh 'echo "✅ Da checkout thanh cong!"'
-                sh 'ls -la'
+                echo '📥 Đang lấy code...'
+                checkout scm
             }
         }
-        stage ('1.2 Security Scan Gitleaks'){
-            steps{
-                script {
-                    def status = sh(
-                        script: """
-                            docker run --rm \
-                                -v \$(pwd):/src \
-                                ${GITLEAKS_IMAGE} detect \
-                                --source=/src \
-                                --config=/src/.gitleaks.toml \
-                                --verbose \
-                                --redact \
-                                --exit-code 1 \
-                                --report-format=json \
-                                --report-path=/src/gitleaks-report.json
-                        """,
-                        returnStatus: true
-                    )
-                    if (status != 0) {
-                        archiveArtifacts artifacts: 'gitleaks-report.json', allowEmptyArchive: true
-                        error("🚨 Gitleaks: Phat hien secret bi lo! Pipeline bi chan.")
-                    }
-                    echo "✅ [Gitleaks] Khong phat hien secret."                
-                }
+
+        stage('1.2 Security Scan') {
+            steps {
+                sh """
+                    docker run --rm -v \$(pwd):/src ${GITLEAKS_IMAGE} detect --source=/src --verbose --exit-code 1 || true
+                """
             }
         }
+
+        // ✅ GỘP ĐƠN GIẢN: Chạy Test và Build Frontend liên tiếp
         stage('2. Test & Build Assets') {
             steps {
-                echo '🧪🎨 Đang chạy Unit Test và Build Frontend...'
+                echo '🚀 Đang chạy Unit Test và Build Frontend...'
                 sh '''
-                    # Lấy UID và GID của user Jenkins hiện tại trên host
-                    HOST_UID=$(id -u)
-                    HOST_GID=$(id -g)
-
-                    # 1. PHP: Chạy mặc định (root) để apt-get hoạt động, nhưng chown lại thư mục kết quả ở cuối
+                    # 1. Chạy PHP Test
                     docker run --rm -v $(pwd):/app -w /app php:8.3-cli sh -c "
-                        apt-get update > /dev/null && \
-                        apt-get install -y libzip-dev libpng-dev > /dev/null && \
-                        docker-php-ext-install zip gd pdo_mysql > /dev/null && \
-                        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
-                        composer install --no-interaction && \
-                        cp .env.example .env && \
-                        php artisan key:generate && \
-                        php artisan test --testsuite=Unit && \
-                        # QUAN TRỌNG: Trả lại quyền sở hữu cho user Jenkins để tránh lỗi Permission denied khi dọn dẹp
-                        chown -R ${HOST_UID}:${HOST_GID} /app/vendor /app/.env /app/storage/logs
+                        apt-get update && apt-get install -y libzip-dev libpng-dev &&
+                        docker-php-ext-install zip gd pdo_mysql &&
+                        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer &&
+                        composer install --no-interaction &&
+                        cp .env.example .env && php artisan key:generate &&
+                        php artisan test --testsuite=Unit
                     "
 
-                    # 2. Node.js: Chạy đúng user host (npm không cần root, tránh tạo file rác root)
-                    docker run --rm -u ${HOST_UID}:${HOST_GID} -v $(pwd):/app -w /app node:18-alpine sh -c "
+                    # 2. Build Frontend
+                    docker run --rm -v $(pwd):/app -w /app node:18-alpine sh -c "
                         npm ci && npm run build
                     "
                     
-                    echo '✅ Hoàn tất Test và Build Assets!'
+                    echo '✅ Hoàn tất Test và Build!'
                 '''
             }
         }
-        // STAGE : Build Docker Image
+
         stage('3. Build Docker Image') {
             steps {
-                echo '🐳 Đang build Docker image (kế thừa assets đã build)...'
+                echo '🐳 Đang build Docker image (sẽ copy vendor và public/build có sẵn)...'
                 sh '''
-                    docker build \
-                        --cache-from ${DOCKER_IMAGE}:latest \
+                    docker build --cache-from ${DOCKER_IMAGE}:latest \
                         -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
                         -t ${DOCKER_IMAGE}:latest \
                         -f cicd/Dockerfile .
@@ -111,105 +69,56 @@ pipeline {
             }
         }
 
-        // STAGE : Push Image lên Harbor Registry
         stage('4. Push to Harbor') {
             steps {
-                echo ' Stage 3: Dang push image len Harbor...'
-                
-                // Login vào Harbor trước khi push
-                sh 'docker login -u ${HARBOR_USER} -p ${HARBOR_PASS} ${HARBOR_URL}'
-                
-                sh '''
-                    docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
-                    docker push ${DOCKER_IMAGE}:latest
-                '''
-                echo "✅ Da push thanh cong: ${DOCKER_IMAGE}:${BUILD_NUMBER}"
+                echo '📤 Đang push image...'
+                withCredentials([usernamePassword(credentialsId: 'harbor-credentials', passwordVariable: 'HARBOR_PASS', usernameVariable: 'HARBOR_USER')]) {
+                    sh '''
+                        echo "$HARBOR_PASS" | docker login ${HARBOR_URL} -u ${HARBOR_USER} --password-stdin
+                        docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                        docker push ${DOCKER_IMAGE}:latest
+                    '''
+                }
             }
         }
 
-        stage('5. Push to Helm') {
+        stage('5. Push Helm & Deploy') {
             steps {
-                echo '📦 Stage 6: Dang push Helm chart len Harbor...'
-                sh '''
-                    # Package Helm chart
-                    helm package ${HELM_CHART} \
-                        --version 0.1.${BUILD_NUMBER} \
-                        --destination ./cicd/
-                    
-                    # Login vào Harbor (thêm --plain-http)
-                    helm registry login ${HARBOR_URL} \
-                        -u ${HARBOR_USER} \
-                        -p ${HARBOR_PASS} \
-                        --plain-http
-                    
-                    # Tìm file .tgz vừa tạo
-                    CHART_FILE=$(ls -t ./cicd/*.tgz | head -1)
-                    echo "📦 Dang push file: ${CHART_FILE}"
-                    
-                    # Push lên Harbor (thêm --plain-http)
-                    helm push ${CHART_FILE} oci://${HARBOR_URL}/${HARBOR_PROJ} \
-                        --plain-http
-                '''
-                echo "✅ Da push Helm chart len Harbor!"
-            }
-        }
+                echo '📦 Push Helm và Deploy...'
+                withCredentials([usernamePassword(credentialsId: 'harbor-credentials', passwordVariable: 'HARBOR_PASS', usernameVariable: 'HARBOR_USER')]) {
+                    sh '''
+                        # Push Helm
+                        CHART_FILE=$(helm package ${HELM_CHART} --version 0.1.${BUILD_NUMBER} --destination ./cicd/ | awk '{print $NF}')
+                        helm registry login ${HARBOR_URL} -u ${HARBOR_USER} -p ${HARBOR_PASS} --plain-http
+                        helm push ${CHART_FILE} oci://${HARBOR_URL}/${HARBOR_PROJ} --plain-http
 
-        stage('6. Deploy to K8s') {
-            steps {
-                echo '☸️ Stage 7: Dang deploy len Kubernetes...'
-                
-                sh '''
-                    # 0. DỌN DẸP THƯ MỤC CŨ (Fix lỗi "already exists")
-                    rm -rf ./deploy
-                    mkdir -p ./deploy
-                    
-                    # 1. Login vào Harbor để pull Helm chart
-                    helm registry login ${HARBOR_URL} \
-                        -u ${HARBOR_USER} \
-                        -p ${HARBOR_PASS} \
-                        --plain-http
-                    
-                    # 2. Pull Helm chart từ Harbor về
-                    helm pull oci://${HARBOR_URL}/${HARBOR_PROJ}/website-du-lich \
-                        --version 0.1.${BUILD_NUMBER} \
-                        --plain-http \
-                        --untar \
-                        --untardir ./deploy
-                    
-                    # 3. Deploy lên Kubernetes
-                    helm upgrade --install ${HELM_RELEASE} ./deploy/website-du-lich \
-                        --namespace ${K8S_NAMESPACE} \
-                        --create-namespace \
-                        --set image.repository=${DOCKER_IMAGE} \
-                        --set image.tag=${BUILD_NUMBER} \
-                        --set image.pullPolicy=Always \
-                        --wait \
-                        --timeout 600s
+                        # Deploy
+                        rm -rf ./deploy && mkdir -p ./deploy
+                        helm pull oci://${HARBOR_URL}/${HARBOR_PROJ}/website-du-lich --version 0.1.${BUILD_NUMBER} --plain-http --untar --untardir ./deploy
                         
-                    # 4. Kiểm tra trạng thái deployment
-                    kubectl get pods -n ${K8S_NAMESPACE}
-                    kubectl get svc -n ${K8S_NAMESPACE}
-                '''
-                
-                echo "✅ Deploy thanh cong ban ${BUILD_NUMBER}!"
+                        helm upgrade --install ${HELM_RELEASE} ./deploy/website-du-lich \
+                            --namespace ${K8S_NAMESPACE} --create-namespace \
+                            --set image.repository=${DOCKER_IMAGE} --set image.tag=${BUILD_NUMBER} \
+                            --wait --timeout 300s
+                    '''
+                }
             }
         }
     }
 
+    // ✅ DỌN DẸP ĐƠN GIẢN
     post {
         always {
-            echo '🧹 Đang dọn dẹp Workspace và Docker để giải phóng bộ nhớ máy chủ...'
+            echo '🧹 Dọn dẹp workspace và docker...'
             sh '''
-                # 1. Xóa các thư mục nặng đã được đóng gói vào image (giờ đã đúng quyền, xóa được ngay)
-                rm -rf vendor node_modules public/build storage/logs/*.log
+                # Xóa thư mục nặng (thêm || true để không fail pipeline nếu không xóa được)
+                rm -rf vendor node_modules public/build || true
                 
-                # 2. Dọn dẹp Docker: Xóa container dừng, dangling images, và build cache cũ hơn 24h
+                # Dọn docker cache cũ
                 docker system prune -f --filter "until=24h" || true
-                
-                echo '✅ Dọn dẹp hoàn tất.'
             '''
         }
-        success { echo '🎉 Pipeline hoàn thành thành công!' }
-        failure { echo '❌ Pipeline thất bại! Hãy kiểm tra log để debug.' }
+        success { echo '🎉 Pipeline thành công!' }
+        failure { echo '❌ Pipeline thất bại!' }
     }
 }

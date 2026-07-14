@@ -66,25 +66,50 @@ pipeline {
                 }
             }
         }
-        // STAGE : Build builder Image && Run Test 
-        stage ('2. Build Builder Image && Run Test') {
+        stage('2. Run Tests') {
             steps {
+                echo '🧪 Dang chay Unit Tests (bo qua Feature Tests)...'
                 sh '''
-                    docker build --target builder -t laravel-builder:${BUILD_NUMBER} -f cicd/Dockerfile .
-
-                    # Chạy test trên image này
-                    docker run --rm laravel-builder:${BUILD_NUMBER} \
-                        sh -c "cp .env.example .env && php artisan key:generate && php artisan test -- testsuite=Unit"
+                    docker run --rm \
+                        -v $(pwd):/app \
+                        -w /app \
+                        php:8.3-cli \
+                        sh -c "
+                            apt-get update && apt-get install -y libzip-dev libpng-dev > /dev/null 2>&1 && \
+                            docker-php-ext-install zip gd pdo_mysql > /dev/null 2>&1 && \
+                            curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+                            composer install --no-interaction && \
+                            cp .env.example .env && \
+                            php artisan key:generate && \
+                            php artisan test --testsuite=Unit
+                        "
                 '''
+                echo '✅ Unit Tests hoan tat!'
+            }
+        }
+        // ️ THÊM STAGE BUILD FRONTEND
+        stage('3. Build Frontend (Vite)') {
+            steps {
+                echo '🎨 Dang build frontend assets (CSS/JS)...'
+                sh '''
+                    docker run --rm \
+                        -v $(pwd):/app \
+                        -w /app \
+                        node:18-alpine \
+                        sh -c "
+                            npm ci && \
+                            npm run build
+                        "
+                '''
+                echo '✅ Frontend da duoc build thanh cong!'
             }
         }
         // STAGE : Build Docker Image
-        stage('3.Build Docker Image') {
+        stage('4.Build Docker Image') {
             steps {
-                echo ' Stage 3: Dang build Docker image...'
+                echo ' Stage 2: Dang build Docker image...'
                 sh '''
                     docker build \
-                        -- target production \
                         -t ${DOCKER_IMAGE}:${BUILD_NUMBER} \
                         -t ${DOCKER_IMAGE}:latest \
                         -f cicd/Dockerfile .
@@ -94,9 +119,9 @@ pipeline {
         }
 
         // STAGE : Push Image lên Harbor Registry
-        stage('4. Push to Harbor') {
+        stage('5. Push to Harbor') {
             steps {
-                echo ' Stage 4: Dang push image len Harbor...'
+                echo ' Stage 3: Dang push image len Harbor...'
                 
                 // Login vào Harbor trước khi push
                 sh 'docker login -u ${HARBOR_USER} -p ${HARBOR_PASS} ${HARBOR_URL}'
@@ -109,9 +134,9 @@ pipeline {
             }
         }
 
-        stage('5. Push to Helm') {
+        stage('6. Push to Helm') {
             steps {
-                echo '📦 Stage 5: Dang push Helm chart len Harbor...'
+                echo '📦 Stage 6: Dang push Helm chart len Harbor...'
                 sh '''
                     # Package Helm chart
                     helm package ${HELM_CHART} \
@@ -136,7 +161,7 @@ pipeline {
             }
         }
 
-        stage('6. Deploy to K8s') {
+        stage('7. Deploy to K8s') {
             steps {
                 echo '☸️ Stage 7: Dang deploy len Kubernetes...'
                 
@@ -187,29 +212,7 @@ pipeline {
         }
         always {
             echo '🧹 Dang don dep...'
-            sh '''
-                # 1. Xóa image builder (luôn xóa, không cần thiết nữa)
-                    docker rmi laravel-builder:${BUILD_NUMBER} 2>/dev/null || true
-                    
-                    # 2. Xóa image production cũ (chỉ giữ bản mới nhất)
-                    # Nếu build lỗi ở Stage 3, 4, 5, 6 → image có thể không tồn tại → || true
-                    docker rmi ${DOCKER_IMAGE}:latest 2>/dev/null || true
-                    docker rmi ${DOCKER_IMAGE}:${BUILD_NUMBER} 2>/dev/null || true
-                    
-                    # 3. Xóa dangling images (image không có tag)
-                    docker image prune -f
-                    
-                    # 4. Xóa container stopped
-                    docker container prune -f
-                    
-                    # 5. Xóa build cache (giải phóng space)
-                    docker builder prune -f
-                    
-                    # 6. Dọn dẹp toàn bộ system (optional, có thể comment nếu muốn giữ cache)
-                    docker system prune -af --volumes || true
-                    
-                    echo "✅ Da don dep xong!"
-            '''
+            sh 'docker system prune -af || true'
         }
     }
 }

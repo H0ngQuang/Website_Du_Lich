@@ -9,6 +9,7 @@ pipeline {
         HELM_RELEASE  = 'laravel-release'
         K8S_NAMESPACE = 'default'
         GITLEAKS_IMAGE = 'zricethezav/gitleaks:v8.18.4' 
+        NVD_API_KEY = credentials('nvd-api-key')
     }
 
     options {
@@ -40,20 +41,20 @@ pipeline {
                     sh 'mkdir -p owasp-reports'
                     
                     // Chạy Docker container
-                    sh '''
-                        docker run --rm \
-                            --user root \
-                            -v ${WORKSPACE}:/src \
-                            -v owasp-nvd-data:/usr/share/dependency-check/data \
-                            -v ${WORKSPACE}/owasp-reports:/report \
-                            owasp/dependency-check:latest \
-                            --scan /src \
-                            --project "${JOB_NAME}" \
-                            --format HTML,JSON \
-                            --out /report \
-                            --failOnCVSS 7 \
-                            --nvdApiKey ${NVD_API_KEY}
-                    '''
+                    sh """
+                        docker run --rm \\
+                            --user root \\
+                            -v ${WORKSPACE}:/src \\
+                            -v owasp-nvd-data:/usr/share/dependency-check/data \\
+                            -v ${WORKSPACE}/owasp-reports:/report \\
+                            owasp/dependency-check:latest \\
+                            --scan /src \\
+                            --project "${JOB_NAME}" \\
+                            --format HTML,JSON \\
+                            --out /report \\
+                            --failOnCVSS 7 \\
+                            --nvdApiKey "${NVD_API_KEY}"
+                    """
                 }
             }
         }

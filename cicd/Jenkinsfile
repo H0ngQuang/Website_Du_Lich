@@ -50,7 +50,8 @@ pipeline {
                             owasp/dependency-check:latest \\
                             --scan /src \\
                             --project "${JOB_NAME}" \\
-                            --format HTML,JSON \\
+                            --format HTML \\
+                            --format JSON \\
                             --out /report \\
                             --failOnCVSS 7 \\
                             --nvdApiKey "${NVD_API_KEY}"

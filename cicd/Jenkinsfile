@@ -136,17 +136,33 @@ pipeline {
     // ✅ DỌN DẸP ĐƠN GIẢN
     post {
         always {
-            echo '🧹 Dọn dẹp workspace và docker...'
-            sh '''
-                # Xóa thư mục nặng (thêm || true để không fail pipeline nếu không xóa được)
-                rm -rf vendor node_modules public/build || true
+            echo '🧹 Đang tự động dọn dẹp workspace sau khi build...'
+            
+            script {
+                // 1. Lưu báo cáo OWASP (Jenkins step - đặt NGOÀI sh)
                 archiveArtifacts artifacts: 'owasp-reports/dependency-check-report.html', allowEmptyArchive: true
-                          
-                # Dọn docker cache cũ
-                docker system prune -f --filter "until=24h" || true
-            '''
+                
+                // 2. Xóa file bằng Docker Alpine (giải quyết vấn đề Permission Denied)
+                sh '''
+                    docker run --rm \\
+                        -v $(pwd):/workspace \\
+                        alpine:latest \\
+                        rm -rf /workspace/vendor \\
+                               /workspace/node_modules \\
+                               /workspace/public/build \\
+                               /workspace/deploy \\
+                               /workspace/owasp-reports \\
+                        || true
+                    
+                    # Xóa file helm tạm
+                    rm -f cicd/*.tgz || true
+                    
+                    # Dọn dangling Docker images (an toàn cho K8s)
+                    docker image prune -f || true
+                '''
+            }
         }
         success { echo '🎉 Pipeline thành công!' }
         failure { echo '❌ Pipeline thất bại!' }
     }
-}
+}   

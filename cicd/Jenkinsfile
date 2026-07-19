@@ -142,7 +142,10 @@ pipeline {
                 // 1. Lưu báo cáo OWASP (Jenkins step - đặt NGOÀI sh)
                 archiveArtifacts artifacts: 'owasp-reports/dependency-check-report.html', allowEmptyArchive: true
                 
-                // 2. Xóa file bằng Docker Alpine (giải quyết vấn đề Permission Denied)
+                // 2. Dùng plugin cleanWs() để xóa sạch sẽ
+                cleanWs(deleteDirs: true, notFailBuild: true)
+                
+                // 3. Xóa file bằng Docker Alpine (giải quyết vấn đề Permission Denied)
                 sh '''
                     docker run --rm \\
                         -v $(pwd):/workspace \\

@@ -146,24 +146,22 @@ pipeline {
                 cleanWs(deleteDirs: true, notFailBuild: true)
                 
                 // 3. Xóa file bằng Docker Alpine (giải quyết vấn đề Permission Denied)
+// ĐẶT TRONG "sh" - Đây là lệnh Linux/Docker
                 sh '''
                     docker run --rm \\
                         -v $(pwd):/workspace \\
                         alpine:latest \\
                         rm -rf /workspace/vendor \\
-                               /workspace/node_modules \\
-                               /workspace/public/build \\
-                               /workspace/deploy \\
-                               /workspace/owasp-reports \\
+                            /workspace/node_modules \\
+                            /workspace/public/build \\
+                            /workspace/deploy \\
+                            /workspace/owasp-reports \\
                         || true
                     
-                    # Xóa file helm tạm
                     rm -f cicd/*.tgz || true
-                    
-                    # Dọn dangling Docker images (an toàn cho K8s)
                     docker image prune -f || true
                 '''
-            }
+                }
         }
         success { echo '🎉 Pipeline thành công!' }
         failure { echo '❌ Pipeline thất bại!' }

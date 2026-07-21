@@ -10,6 +10,9 @@ pipeline {
         K8S_NAMESPACE = 'default'
         GITLEAKS_IMAGE = 'zricethezav/gitleaks:v8.18.4' 
         NVD_API_KEY = credentials('nvd-api-key')
+        
+        SONAR_SCANNER_HOME = tool 'SonarScanner' 
+   
     }
 
     options {
@@ -32,33 +35,7 @@ pipeline {
                 """
             }
         }
-        stage('Stage 1.3 OWASP Dependency Check (Docker)') {
-            steps {
-                script {
-                    echo '🔍 Khởi chạy OWASP Dependency-Check trong Docker...'
-                    
-                    // Tạo thư mục local trên Jenkins để chứa báo cáo
-                    sh 'mkdir -p owasp-reports'
-                    
-                    // Chạy Docker container
-                    sh """
-                        docker run --rm \\
-                            --user root \\
-                            -v ${WORKSPACE}:/src \\
-                            -v owasp-nvd-data:/usr/share/dependency-check/data \\
-                            -v ${WORKSPACE}/owasp-reports:/report \\
-                            owasp/dependency-check:latest \\
-                            --scan /src \\
-                            --project "${JOB_NAME}" \\
-                            --format HTML \\
-                            --format JSON \\
-                            --out /report \\
-                            --failOnCVSS 7 \\
-                            --nvdApiKey "${NVD_API_KEY}"
-                    """
-                }
-            }
-        }
+        
         // ✅ GỘP ĐƠN GIẢN: Chạy Test và Build Frontend liên tiếp
         stage('2. Test & Build Assets') {
             steps {
@@ -71,7 +48,12 @@ pipeline {
                         curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer &&
                         composer install --no-interaction &&
                         cp .env.example .env && php artisan key:generate &&
-                        php artisan test --testsuite=Unit
+
+                        # Tạo thư mục coverage
+                        mkdir -p coverage &&
+                        
+                        # Chạy PHPUnit trực tiếp để xuất file clover.xml (QUAN TRỌNG CHO SONAR)
+                        "./vendor/bin/phpunit --coverage-clover=coverage/clover.xml --log-junit=coverage/junit.xml"
                     "
 
                     # 2. Build Frontend
@@ -83,7 +65,37 @@ pipeline {
                 '''
             }
         }
+        
+        stage('3. SonarQube Analysis') {
+            steps {
+                echo '🔍 Đang quét mã nguồn với SonarQube...'
+                // 'SonarQube-Server' là tên bạn đặt trong Manage Jenkins -> System
+                withSonarQubeEnv('SonarQube-Server') {
+                    sh """
+                        ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+                            -Dsonar.projectKey=laravel-website-du-lich \
+                            -Dsonar.projectName='Website Du Lich Laravel' \
+                            -Dsonar.projectVersion=1.0.${BUILD_NUMBER} \
+                            -Dsonar.sources=app,config,database,routes,resources \
+                            -Dsonar.tests=tests \
+                            -Dsonar.php.coverage.reportPaths=coverage/clover.xml \
+                            -Dsonar.php.tests.reportPath=coverage/junit.xml \
+                            -Dsonar.exclusions=**/vendor/**,**/node_modules/**,**/storage/**,**/bootstrap/cache/**,**/public/** \
+                            -Dsonar.qualitygate.wait=true
+                    """
+                }
+            }
+        }
 
+        stage('4. Quality Gate Check') {
+            steps {
+                echo '⏳ Đang chờ kết quả Quality Gate từ SonarQube...'
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+        
         stage('3. Build Docker Image') {
             steps {
                 echo '🐳 Đang build Docker image (sẽ copy vendor và public/build có sẵn)...'

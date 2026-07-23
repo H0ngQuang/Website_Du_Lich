@@ -186,30 +186,18 @@ pipeline {
         always {
             echo '🧹 Đang tự động dọn dẹp workspace sau khi build...'
             
-            script {
-                // 1. Lưu báo cáo OWASP (Jenkins step - đặt NGOÀI sh)
-                archiveArtifacts artifacts: 'owasp-reports/dependency-check-report.html', allowEmptyArchive: true
-                
-                // 2. Dùng plugin cleanWs() để xóa sạch sẽ
-                cleanWs(deleteDirs: true, notFailBuild: true)
-                
-                // 3. Xóa file bằng Docker Alpine (giải quyết vấn đề Permission Denied)
-// ĐẶT TRONG "sh" - Đây là lệnh Linux/Docker
-                sh '''
-                    docker run --rm \\
-                        -v $(pwd):/workspace \\
-                        alpine:latest \\
-                        rm -rf /workspace/vendor \\
-                            /workspace/node_modules \\
-                            /workspace/public/build \\
-                            /workspace/deploy \\
-                            /workspace/owasp-reports \\
-                        || true
-                    
-                    rm -f cicd/*.tgz || true
-                    docker image prune -f || true
-                '''
-                }
+            // 1. Lệnh Jenkins thuần túy. Không nằm trong script, không nằm trong sh
+            archiveArtifacts artifacts: 'owasp-reports/dependency-check-report.html', allowEmptyArchive: true
+            
+            // 2. Lệnh Jenkins thuần túy
+            cleanWs(deleteDirs: true, notFailBuild: true)
+            
+            // 3. Duy nhất khối này là lệnh Linux/Docker
+            sh '''
+                docker run --rm -v $(pwd):/workspace alpine:latest rm -rf /workspace/vendor /workspace/node_modules /workspace/public/build /workspace/deploy /workspace/owasp-reports || true
+                rm -f cicd/*.tgz || true
+                docker image prune -f || true
+            '''
         }
         success { echo '🎉 Pipeline thành công!' }
         failure { echo '❌ Pipeline thất bại!' }

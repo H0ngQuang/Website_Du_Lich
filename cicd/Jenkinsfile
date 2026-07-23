@@ -9,7 +9,7 @@ pipeline {
         HELM_RELEASE  = 'laravel-release'
         K8S_NAMESPACE = 'default'
         GITLEAKS_IMAGE = 'zricethezav/gitleaks:v8.18.4' 
-        NVD_API_KEY = credentials('nvd-api-key')
+//        NVD_API_KEY = credentials('nvd-api-key')
         
         SONAR_SCANNER_HOME = tool 'SonarScanner' 
    

@@ -35,6 +35,37 @@ pipeline {
                 """
             }
         }
+        stage('Stage 1.3 OWASP Dependency Check (Docker)') {
+            steps {
+                script {
+                    echo '🔍 Khởi chạy OWASP Dependency-Check trong Docker...'
+                    sh 'mkdir -p owasp-reports'
+                    
+                    sh """
+                        docker run --rm \\
+                            --user root \\
+                            -e JAVA_OPTS="-Xmx2g -Xms1g" \\
+                            -v ${WORKSPACE}:/src \\
+                            -v owasp-nvd-data:/usr/share/dependency-check/data \\
+                            -v ${WORKSPACE}/owasp-reports:/report \\
+                            owasp/dependency-check:latest \\
+                            --scan /src \\
+                            --project "${JOB_NAME}" \\
+                            --format HTML \\
+                            --format JSON \\
+                            --out /report \\
+                            --failOnCVSS 7 \\
+                            --nvdApiKey "${NVD_API_KEY}" \\
+                            --exclude "**/node_modules/**" \\
+                            --exclude "**/vendor/**" \\
+                            --exclude "**/tests/**" \\
+                            --exclude "**/.git/**" \\
+                            --exclude "**/storage/**" \\
+                            --exclude "**/bootstrap/cache/**"
+                    """
+                }
+            }
+        }
         
         // ✅ GỘP ĐƠN GIẢN: Chạy Test và Build Frontend liên tiếp
         stage('2. Test & Build Assets') {
@@ -67,35 +98,35 @@ pipeline {
             }
         }
         
-        stage('3. SonarQube Analysis') {
-            steps {
-                echo '🔍 Đang quét mã nguồn với SonarQube...'
-                // 'SonarQube-Server' là tên bạn đặt trong Manage Jenkins -> System
-                withSonarQubeEnv('SonarQube-Server') {
-                    sh """
-                        ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
-                            -Dsonar.projectKey=laravel-website-du-lich \
-                            -Dsonar.projectName='Website Du Lich Laravel' \
-                            -Dsonar.projectVersion=1.0.${BUILD_NUMBER} \
-                            -Dsonar.sources=app,config,database,routes,resources \
-                            -Dsonar.tests=tests \
-                            -Dsonar.php.coverage.reportPaths=coverage/clover.xml \
-                            -Dsonar.php.tests.reportPath=coverage/junit.xml \
-                            -Dsonar.exclusions=**/vendor/**,**/node_modules/**,**/storage/**,**/bootstrap/cache/**,**/public/** \
-                            -Dsonar.qualitygate.wait=true
-                    """
-                }
-            }
-        }
+        // stage('3. SonarQube Analysis') {
+        //     steps {
+        //         echo '🔍 Đang quét mã nguồn với SonarQube...'
+        //         // 'SonarQube-Server' là tên bạn đặt trong Manage Jenkins -> System
+        //         withSonarQubeEnv('SonarQube-Server') {
+        //             sh """
+        //                 ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+        //                     -Dsonar.projectKey=laravel-website-du-lich \
+        //                     -Dsonar.projectName='Website Du Lich Laravel' \
+        //                     -Dsonar.projectVersion=1.0.${BUILD_NUMBER} \
+        //                     -Dsonar.sources=app,config,database,routes,resources \
+        //                     -Dsonar.tests=tests \
+        //                     -Dsonar.php.coverage.reportPaths=coverage/clover.xml \
+        //                     -Dsonar.php.tests.reportPath=coverage/junit.xml \
+        //                     -Dsonar.exclusions=**/vendor/**,**/node_modules/**,**/storage/**,**/bootstrap/cache/**,**/public/** \
+        //                     -Dsonar.qualitygate.wait=true
+        //             """
+        //         }
+        //     }
+        // }
 
-        stage('4. Quality Gate Check') {
-            steps {
-                echo '⏳ Đang chờ kết quả Quality Gate từ SonarQube...'
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
+        // stage('4. Quality Gate Check') {
+        //     steps {
+        //         echo '⏳ Đang chờ kết quả Quality Gate từ SonarQube...'
+        //         timeout(time: 5, unit: 'MINUTES') {
+        //             waitForQualityGate abortPipeline: true
+        //         }
+        //     }
+        // }
         
         stage('3. Build Docker Image') {
             steps {

@@ -49,9 +49,7 @@ pipeline {
                         composer install --no-interaction &&
                         cp .env.example .env && php artisan key:generate &&
 
-                        php artisan config:clear &&
-                        php artisan optimize:clear &&
-                        
+
                         # Tạo thư mục coverage
                         mkdir -p coverage &&
                         
